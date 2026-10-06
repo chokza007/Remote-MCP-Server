@@ -5,6 +5,7 @@ import { RemoteMcpError } from "@remote-mcp/contracts";
 
 const execFileAsync = promisify(execFile);
 const trackedMetadata = new Map<number, { readonly parentPid: number; readonly commandLine: string }>();
+const PROCESS_QUERY_TIMEOUT_MS = 15_000;
 
 export interface ProcessIdentity {
   readonly pid: number;
@@ -62,7 +63,7 @@ async function queryProcesses(pid?: number): Promise<readonly ProcessInfo[]> {
     const { stdout } = await execFileAsync("powershell.exe", ["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", script], {
       windowsHide: true,
       maxBuffer: 16 * 1024 * 1024,
-      timeout: 5_000
+      timeout: PROCESS_QUERY_TIMEOUT_MS
     });
     const raw = stdout.trim().length === 0 ? [] : JSON.parse(stdout) as Array<{
       pid: number;
@@ -87,7 +88,7 @@ async function queryProcesses(pid?: number): Promise<readonly ProcessInfo[]> {
       errorCode: "PROCESS_INSPECTION_FAILED",
       message: "Windows process inspection failed.",
       retryable: true,
-      suggestedAction: "Retry or inspect CIM availability and account permissions.",
+      suggestedAction: "Retry or inspect PowerShell availability and account permissions.",
       target: pid === undefined ? "all-processes" : String(pid),
       cause: error
     });
