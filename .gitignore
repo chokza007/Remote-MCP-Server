@@ -1,0 +1,11 @@
+.worktrees/
+.superpowers/
+node_modules/
+dist/
+coverage/
+var/
+*.log
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
