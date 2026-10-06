@@ -14,3 +14,4 @@ export {
   type ToolOutput,
   type ToolRegistrationOptions
 } from "./tool-registry.js";
+export { registerJobTools, type JobToolDependencies } from "./tools/jobs.js";

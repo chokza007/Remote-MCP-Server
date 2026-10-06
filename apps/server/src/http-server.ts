@@ -37,6 +37,7 @@ import {
   type TrustedGrant
 } from "@remote-mcp/control-plane";
 import type { OperationalDatabase } from "@remote-mcp/persistence";
+import { createJobService, type JobService } from "@remote-mcp/runtime";
 
 import { resolveServerConfig, type ServerConfig } from "./config.js";
 import { identityFromRequest, sameStableIdentity } from "./context.js";
@@ -45,6 +46,7 @@ import { ToolRegistry } from "./tool-registry.js";
 import { registerAuthorizationTools } from "./tools/authorization.js";
 import { registerFilesystemTools } from "./tools/filesystem.js";
 import { registerHealthTool } from "./tools/health.js";
+import { registerJobTools } from "./tools/jobs.js";
 import { registerSearchTools } from "./tools/search.js";
 import { registerSystemTools } from "./tools/system.js";
 import { registerTerminalTools } from "./tools/terminal.js";
@@ -62,6 +64,7 @@ export interface CreateHttpServerOptions extends Partial<ServerConfig> {
   readonly ports?: PortService;
   readonly discovery?: SystemDiscovery;
   readonly environment?: EnvironmentService;
+  readonly jobs?: JobService;
 }
 
 export interface HttpServerHandle {
@@ -114,6 +117,10 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
   registerAuthorizationTools(registry, { grants, emergencyStop });
   registerFilesystemTools(registry, options.filesystem ?? createFilesystemAdapter());
   registerHealthTool(registry, options.database);
+  registerJobTools(registry, {
+    jobs: options.jobs ?? createJobService({ database: options.database }),
+    grants
+  });
   registerSearchTools(registry, options.search ?? createSearchService({ database: options.database }));
   registerTerminalTools(
     registry,

@@ -10,6 +10,7 @@
     { "path": "../../packages/adapters" },
     { "path": "../../packages/contracts" },
     { "path": "../../packages/control-plane" },
-    { "path": "../../packages/persistence" }
+    { "path": "../../packages/persistence" },
+    { "path": "../../packages/runtime" }
   ]
 }
