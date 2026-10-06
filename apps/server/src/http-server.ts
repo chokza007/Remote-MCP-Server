@@ -10,6 +10,7 @@ import type { Request, Response } from "express";
 import {
   createFilesystemAdapter,
   createEnvironmentService,
+  createGitAdapter,
   createPortService,
   createProcessService,
   createSearchService,
@@ -18,6 +19,7 @@ import {
   createWindowsServiceService,
   type EnvironmentService,
   type FilesystemAdapter,
+  type GitAdapter,
   type PortService,
   type ProcessService,
   type SearchService,
@@ -45,6 +47,7 @@ import { createMcpServer } from "./create-mcp-server.js";
 import { ToolRegistry } from "./tool-registry.js";
 import { registerAuthorizationTools } from "./tools/authorization.js";
 import { registerFilesystemTools } from "./tools/filesystem.js";
+import { registerGitTools } from "./tools/git.js";
 import { registerHealthTool } from "./tools/health.js";
 import { registerJobTools } from "./tools/jobs.js";
 import { registerSearchTools } from "./tools/search.js";
@@ -57,6 +60,7 @@ export interface CreateHttpServerOptions extends Partial<ServerConfig> {
   readonly protector?: SecretProtector;
   readonly localDevelopmentToken?: string;
   readonly filesystem?: FilesystemAdapter;
+  readonly git?: GitAdapter;
   readonly search?: SearchService;
   readonly terminal?: TerminalService;
   readonly processes?: ProcessService;
@@ -116,6 +120,7 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
   const registry = new ToolRegistry();
   registerAuthorizationTools(registry, { grants, emergencyStop });
   registerFilesystemTools(registry, options.filesystem ?? createFilesystemAdapter());
+  registerGitTools(registry, options.git ?? createGitAdapter());
   registerHealthTool(registry, options.database);
   registerJobTools(registry, {
     jobs: options.jobs ?? createJobService({ database: options.database }),

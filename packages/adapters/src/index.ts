@@ -79,3 +79,28 @@ export {
   type CapabilityStatus,
   type SystemSnapshot
 } from "./system/discovery.js";
+export {
+  createGitAdapter,
+  ProcessGitAdapter,
+  type GitAdapter,
+  type GitAdapterOptions,
+  type GitBranch,
+  type GitBranchesResult,
+  type GitConflict,
+  type GitControl,
+  type GitCredentialProvider,
+  type GitDiffOptions,
+  type GitDiffResult,
+  type GitLogEntry,
+  type GitLogOptions,
+  type GitMutationResult,
+  type GitRemoteOptions,
+  type GitStatusEntry,
+  type GitStatusResult
+} from "./git/git-adapter.js";
+export { GitAdapterError, redactGitOutput, type GitErrorCode } from "./git/git-errors.js";
+export {
+  discoverGitRepository,
+  requireExactRepositoryRoot,
+  type RepositoryDiscoveryResult
+} from "./git/repository-discovery.js";
