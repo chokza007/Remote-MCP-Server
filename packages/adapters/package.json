@@ -10,6 +10,8 @@
     }
   },
   "dependencies": {
-    "@remote-mcp/contracts": "0.1.0"
+    "@remote-mcp/contracts": "0.1.0",
+    "@remote-mcp/persistence": "0.1.0",
+    "fflate": "0.8.3"
   }
 }

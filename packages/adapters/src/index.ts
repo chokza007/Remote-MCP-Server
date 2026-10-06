@@ -30,3 +30,12 @@ export {
   type ProjectGuidanceKind,
   type ProjectGuidanceReference
 } from "./filesystem/project-discovery.js";
+export {
+  createSearchService,
+  SearchService,
+  type SearchPage,
+  type SearchRequest,
+  type SearchResult,
+  type SearchServiceOptions,
+  type SearchStatus
+} from "./search/search-service.js";
