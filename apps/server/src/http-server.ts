@@ -9,11 +9,21 @@ import type { Request, Response } from "express";
 
 import {
   createFilesystemAdapter,
+  createEnvironmentService,
+  createPortService,
+  createProcessService,
   createSearchService,
+  createSystemDiscovery,
   createTerminalService,
+  createWindowsServiceService,
+  type EnvironmentService,
   type FilesystemAdapter,
+  type PortService,
+  type ProcessService,
   type SearchService,
-  type TerminalService
+  type SystemDiscovery,
+  type TerminalService,
+  type WindowsServiceService
 } from "@remote-mcp/adapters";
 import {
   createApprovalService,
@@ -36,6 +46,7 @@ import { registerAuthorizationTools } from "./tools/authorization.js";
 import { registerFilesystemTools } from "./tools/filesystem.js";
 import { registerHealthTool } from "./tools/health.js";
 import { registerSearchTools } from "./tools/search.js";
+import { registerSystemTools } from "./tools/system.js";
 import { registerTerminalTools } from "./tools/terminal.js";
 import { registerServerInfoTool } from "./tools/server-info.js";
 
@@ -46,6 +57,11 @@ export interface CreateHttpServerOptions extends Partial<ServerConfig> {
   readonly filesystem?: FilesystemAdapter;
   readonly search?: SearchService;
   readonly terminal?: TerminalService;
+  readonly processes?: ProcessService;
+  readonly services?: WindowsServiceService;
+  readonly ports?: PortService;
+  readonly discovery?: SystemDiscovery;
+  readonly environment?: EnvironmentService;
 }
 
 export interface HttpServerHandle {
@@ -108,6 +124,13 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
         redactOutput: (value) => redactor.redact(value) as string
       })
   );
+  registerSystemTools(registry, {
+    processes: options.processes ?? createProcessService(),
+    services: options.services ?? createWindowsServiceService(),
+    ports: options.ports ?? createPortService(),
+    discovery: options.discovery ?? createSystemDiscovery(),
+    environment: options.environment ?? createEnvironmentService()
+  });
   registerServerInfoTool(registry, grants);
 
   const sessions = new Map<string, SessionRecord>();
