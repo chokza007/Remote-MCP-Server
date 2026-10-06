@@ -47,3 +47,28 @@ export {
   type AuditServiceOptions
 } from "./audit/audit-service.js";
 export type { AuditEventId, AuditEventInput } from "./audit/audit-event.js";
+export {
+  canonicalJson,
+  CapabilityTokenService,
+  createCapabilityTokenService,
+  createNonceStore,
+  hashBrokerPayload,
+  verifyPrivilegedRequest,
+  type BrokerAuthorizationStateV1,
+  type BrokerGrantStateV1,
+  type CapabilityClaimsV1,
+  type CapabilityTokenServiceOptions,
+  type CapabilityTokenV1,
+  type IssueCapabilityInput,
+  type NonceStore,
+  type PrivilegedRequest,
+  type SignedBrokerAuthorizationSnapshotV1,
+  type VerifyPrivilegedRequestOptions
+} from "./broker/capability-token.js";
+export {
+  BrokerClient,
+  BrokerFrameDecoder,
+  encodeBrokerFrame,
+  type BrokerClientOptions,
+  type PrivilegedResult
+} from "./broker/broker-client.js";

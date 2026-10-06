@@ -6,6 +6,8 @@ coverage/
 var/
 *.log
 *.tsbuildinfo
+broker/bin/
+broker/obj/
 .env
 .env.*
 !.env.example
