@@ -1,0 +1,7 @@
+{
+  "host": "127.0.0.1",
+  "port": 7331,
+  "endpoint": "/mcp",
+  "maxSessions": 1000,
+  "maxRequestBodyBytes": 1048576
+}

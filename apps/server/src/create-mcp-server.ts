@@ -1,0 +1,131 @@
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+
+import { RemoteMcpError, toToolError } from "@remote-mcp/contracts";
+import type {
+  AuditService,
+  AuthenticatedIdentity,
+  GrantService,
+  PolicyEngine
+} from "@remote-mcp/control-plane";
+
+import { createToolContext } from "./context.js";
+import type { RegisteredGatewayTool, ToolRegistry } from "./tool-registry.js";
+
+export interface McpServerDependencies {
+  readonly registry: ToolRegistry;
+  readonly identity: AuthenticatedIdentity;
+  readonly grants: GrantService;
+  readonly policy: PolicyEngine;
+  readonly audit: AuditService;
+}
+
+function authorizationError(reason: string, tool: RegisteredGatewayTool): RemoteMcpError {
+  return new RemoteMcpError({
+    errorCode: "AUTHORIZATION_REQUIRED",
+    message: `Authorization denied: ${reason}`,
+    retryable: reason !== "EMERGENCY_STOP",
+    suggestedAction: "Grant the required persistent access or clear the applicable security control.",
+    target: tool.descriptor.name
+  });
+}
+
+export function createMcpServer(dependencies: McpServerDependencies): McpServer {
+  const server = new McpServer({ name: "remote-mcp-server", version: "0.1.0" });
+
+  for (const tool of dependencies.registry.entries()) {
+    server.registerTool(
+      tool.descriptor.name,
+      {
+        title: tool.descriptor.title,
+        description: tool.descriptor.description,
+        inputSchema: tool.inputSchema,
+        annotations: {
+          readOnlyHint: tool.descriptor.riskTier === 0,
+          destructiveHint: tool.descriptor.riskTier >= 2,
+          openWorldHint: false
+        },
+        _meta: {
+          "remote-mcp/schemaVersion": tool.descriptor.schemaVersion,
+          "remote-mcp/toolVersion": tool.descriptor.version,
+          "remote-mcp/riskTier": tool.descriptor.riskTier,
+          "remote-mcp/requiredScope": tool.descriptor.requiredScope
+        }
+      },
+      async (argumentsValue) => {
+        const context = createToolContext(dependencies.identity);
+        try {
+          if (!tool.public) {
+            if (tool.bypassEmergencyStop) {
+              const resolution = dependencies.grants.resolve(context.identity);
+              if (resolution.state !== "granted") {
+                throw authorizationError(resolution.reason.toUpperCase(), tool);
+              }
+            } else {
+              const decision = await dependencies.policy.authorize({
+                identity: context.identity,
+                correlationId: context.correlationId,
+                action: {
+                  name: tool.descriptor.name,
+                  version: tool.descriptor.version,
+                  riskTier: tool.descriptor.riskTier,
+                  requiredScope: tool.descriptor.requiredScope,
+                  mutates: tool.descriptor.riskTier > 0,
+                  actionClass: tool.descriptor.name
+                },
+                payload: argumentsValue,
+                targets: [],
+                preview: null,
+                recoveryPlan: null
+              });
+              if (decision.kind !== "allow") {
+                throw authorizationError(
+                  decision.kind === "deny" ? decision.reason : "INTERACTIVE_APPROVAL_REQUIRED",
+                  tool
+                );
+              }
+            }
+          }
+
+          const output = await tool.handler(argumentsValue, context);
+          dependencies.audit.record({
+            correlationId: context.correlationId,
+            principalId: context.identity.principalId,
+            clientId: context.identity.clientId,
+            ...(context.identity.sessionId === undefined
+              ? {}
+              : { sessionId: context.identity.sessionId }),
+            eventType: "tool.completed",
+            toolName: tool.descriptor.name,
+            targets: [],
+            result: output
+          });
+          return {
+            content: [{ type: "text" as const, text: JSON.stringify(output) }],
+            structuredContent: output
+          };
+        } catch (error) {
+          const envelope = toToolError(error, { target: tool.descriptor.name });
+          dependencies.audit.record({
+            correlationId: context.correlationId,
+            principalId: context.identity.principalId,
+            clientId: context.identity.clientId,
+            ...(context.identity.sessionId === undefined
+              ? {}
+              : { sessionId: context.identity.sessionId }),
+            eventType: "tool.failed",
+            toolName: tool.descriptor.name,
+            targets: [],
+            result: envelope
+          });
+          return {
+            isError: true,
+            content: [{ type: "text" as const, text: JSON.stringify(envelope) }],
+            structuredContent: { schemaVersion: 1, ok: false, error: envelope }
+          };
+        }
+      }
+    );
+  }
+
+  return server;
+}
