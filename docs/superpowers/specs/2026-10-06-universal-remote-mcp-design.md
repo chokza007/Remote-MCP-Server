@@ -1,7 +1,7 @@
 # Universal Remote MCP Server — Architecture Design
 
 **Date:** 2026-10-06  
-**Status:** Approved in conversation; written-spec review pending  
+**Status:** Approved; persistent authorization amendment incorporated  
 **Target:** `E:\Remote-MCP-Server`  
 **Platform:** Authorized Windows workstation  
 
@@ -13,8 +13,9 @@ The implementation must follow this precedence order:
 2. `docs/specs/REMOTE_MCP_FULL_CAPABILITY_SPEC.md` (the Master Spec).
 3. `docs/specs/USER_APPROVAL_AND_EXTENSIONS_TH.txt` (approved additions and execution authority).
 4. `docs/specs/PROJECT_AGNOSTIC_CLARIFICATION_TH.md` (final project-boundary clarification).
-5. This architecture design.
-6. The implementation plan and source code.
+5. `docs/specs/PERSISTENT_FULL_ACCESS_AUTHORIZATION_TH.md` (persistent trust authorization amendment).
+6. This architecture design.
+7. The implementation plan and source code.
 
 The two source documents are preserved verbatim inside the project. This is a new implementation. Existing MCP servers and Desktop Commander are compatibility references only; their architecture and source code are not reused.
 
@@ -24,7 +25,7 @@ Build a self-hosted remote MCP server that lets an authorized ChatGPT session op
 
 `OBSERVE → UNDERSTAND → PLAN → ACT → WATCH RESULT → VERIFY → FIX → CONTINUE`
 
-The server must provide broad workstation capability without silently weakening the Master Spec. Potentially dangerous operations are not permanently blocked when a safe approval flow is possible; they are routed through an exact, expiring Approval Gate.
+The server must provide broad workstation capability without silently weakening the Master Spec. Authorization is policy-driven. A valid persistent Full Access Grant satisfies covered authorization levels without per-action prompts; interactive approval is used only when the current grant does not cover the requested action.
 
 The server is a universal, project-agnostic infrastructure/tool layer. It exposes capabilities and operational continuity; it does not own or impose any project's knowledge, memory, rules, production process, or workflow.
 
@@ -34,6 +35,7 @@ The server is a universal, project-agnostic infrastructure/tool layer. It expose
 - Durable jobs that continue through HTTP or chat disconnects and reconcile after server restart.
 - Persistent operational state, runtime checkpoints, artifacts, watches, schedules, transactions, resource locks, and notifications.
 - Remote Streamable HTTP access with secure authentication and an HTTPS deployment path.
+- Persistent-until-revoked Full Access as a first-class authorization mode, with optional sensitive-action and read-only modes.
 - Clear, versioned tool schemas; structured errors; audit logs with secret redaction.
 - Thai-first user documentation plus precise technical references.
 
@@ -46,7 +48,7 @@ The server is a universal, project-agnostic infrastructure/tool layer. It expose
 - Both synchronous tools and asynchronous durable operations.
 - Local testing and opt-in remote HTTPS deployment.
 - GUI and browser automation with semantic methods first and coordinate fallback.
-- Package installation and system-administration workflows behind approval and OS privilege checks.
+- Package installation and system-administration workflows authorized by the active grant and OS privilege checks.
 
 ### Project-agnostic boundary
 
@@ -66,7 +68,7 @@ Persistent MCP state is limited to operational data: authenticated sessions, run
 
 ### Inherent platform boundaries
 
-- Windows secure desktop and some UAC prompts may require visible human confirmation; a non-elevated service cannot reliably automate the secure desktop.
+- Initial privileged-broker installation and Windows secure-desktop events outside the broker's covered operations may require visible human confirmation. Once the authorized broker is installed, covered Full Access operations must not generate per-command UAC prompts.
 - DRM-protected surfaces, protected applications, CAPTCHA, and MFA may require user interaction.
 - Sleep, shutdown, and power loss pause active work. Persisted jobs reconcile after boot; uninterrupted restart recovery requires an approved service or scheduled-start installation.
 - The server operates with the rights of its Windows account unless the user explicitly approves elevation.
@@ -203,11 +205,14 @@ Stack traces and secrets are excluded from MCP responses. Full sanitized diagnos
 Each request is bound to:
 
 - An authenticated principal.
+- A stable client identity and this server's device identity.
 - An MCP session.
 - An explicit workspace, when the operation is project-scoped.
 - A correlation ID and optional transaction/job IDs.
 
-Workspace selection never restricts explicitly authorized full-machine tools, but it prevents accidental relative-path ambiguity. All paths are normalized to canonical Windows paths before policy evaluation.
+Workspace selection never restricts tools covered by a Full Access Grant, but it prevents accidental relative-path ambiguity. All paths are normalized to canonical Windows paths before policy evaluation.
+
+Authorization is resolved from the stable principal/client/device tuple, not from the transient chat or MCP session. A new chat or reconnected session therefore inherits a valid persistent grant after authentication proves the same client identity.
 
 Persistent MCP state stores only resumable operational facts: active sessions, execution checkpoints, job/process relationships, pending approvals, watches, schedules, safe runtime preferences, audit references, and artifact path mappings. An execution checkpoint describes how the MCP runtime can safely resume an operation; it is not a project status document.
 
@@ -218,7 +223,8 @@ Project goals, task status, research, sources, rules, history, and workflow deci
 SQLite is the authoritative local state store. Principal tables include:
 
 - `schema_migrations`
-- `principals`, `sessions`, `workspaces`
+- `server_identity`, `principals`, `clients`, `devices`, `sessions`, `workspaces`
+- `trusted_grants`, `grant_scopes`, `grant_events`, `security_epochs`
 - `actions`, `approvals`, `approval_uses`
 - `jobs`, `job_steps`, `job_events`, `job_logs`
 - `searches`, `search_results`
@@ -233,46 +239,91 @@ SQLite is the authoritative local state store. Principal tables include:
 
 Large logs, screenshots, recovered files, and generated documents live in the artifact store; SQLite records their hashes, metadata, lineage, and retention state.
 
-## 10. Approval Gate
+## 10. Authorization and optional Approval Gate
 
-### Classification
+### Permission modes
+
+- **Full Access:** Persistent trusted access to the computer within the rights of the Windows account and authorized privileged broker. It is a first-class mode and has no automatic short expiry by default.
+- **Ask for Sensitive Actions:** Read and low-risk operations proceed; actions requiring a higher authorization level use interactive approval.
+- **Read Only:** Mutating and control operations are denied regardless of their risk tier.
+
+Policy assigns each action a required authorization level. A valid persistent Full Access Grant can satisfy that level. Interactive approval is required only when the current grant does not cover the requested action.
+
+### Risk classification
 
 - **Tier 0:** Read-only inspection and harmless discovery.
-- **Tier 1:** Reversible writes inside an explicit workspace.
-- **Tier 2:** Broad, external, destructive, sensitive, credentialed, or machine-level changes; approval required.
-- **Tier 3:** Extremely dangerous or irreversible operations; exact approval plus extra preconditions and recovery evidence required. Some operations remain impossible when the OS cannot provide a safe execution path.
+- **Tier 1:** Reversible writes and ordinary execution.
+- **Tier 2:** Broad, external, destructive, sensitive, credentialed, or machine-level changes.
+- **Tier 3:** Extremely dangerous or irreversible operations that require extra preconditions and recovery evidence.
 
-### Approval binding
+Risk tiers still control logging, dry-run/preview, recovery requirements, concurrency, and broker routing. They do not force a per-action human prompt when a valid Full Access Grant covers the operation. No grant can exceed the actual Windows account/broker rights or make an OS-forbidden operation possible.
 
-An approval record binds all of the following:
+### First-time authorization and persistent grants
 
-- Canonical action name and schema version.
-- Canonicalized payload hash using SHA-256.
-- Canonical target set.
-- Authenticated principal and MCP session.
-- Requested permission tier and action class.
-- Creation and expiration time.
-- One-time-use nonce.
-- Preview, recovery plan, and estimated impact.
+A new authenticated principal/client is restricted until the user selects **Grant Full Access to This Computer**, chooses a restricted mode, or denies access. Enrollment shows the server/device identity, client identity, requested scope, and revocation controls.
 
-Changing any bound field invalidates the approval. Approvals default to one-time use. Optional session-scoped grants are narrow action-class grants with a short expiry and explicit targets; they never become unrestricted permanent grants.
+Each persistent grant contains:
 
-### Client experience
+- Cryptographically stable authenticated principal and client identifiers.
+- Server/device identity and security epoch.
+- Random grant ID and authorization mode.
+- Explicit granted scope, including `computer:*` for Full Access.
+- Creation time, creator evidence, and optional user-provided label.
+- Revocation state, time, reason, and credential/client linkage.
+- Integrity protection tied to the server identity key.
 
-- Clients supporting MCP elicitation receive explicit Allow Once / Deny choices.
-- Other clients receive an `APPROVAL_REQUIRED` result and use `approve_action` or `deny_action` with the approval ID.
-- Execution always revalidates the request after approval to defeat time-of-check/time-of-use changes.
+Full Access has no automatic expiry by default and survives new chats, refreshes, reconnects, server restarts, Windows reboots, and long periods of inactivity. It ends only on explicit revoke, client credential cancellation, device unlink, or security reset. A security reset rotates the server security epoch and invalidates all older grants.
 
-## 11. Credential Broker and secret handling
+### Grant evaluation
+
+For every action and durable job step, the policy engine:
+
+1. Authenticates the principal/client and verifies the server/device binding.
+2. Loads a non-revoked grant in the current security epoch.
+3. Confirms that mode and scope cover the action, target, and required authorization level.
+4. Applies mandatory non-approval controls such as schema validation, audit, secret redaction, resource locks, and OS privilege checks.
+5. Executes immediately when covered; otherwise denies or creates an interactive Approval Request according to the restricted mode.
+
+The decision and grant ID are recorded in the audit trail without exposing credentials.
+
+### Interactive Approval Gate for restricted access
+
+When needed, an approval record binds the canonical action/schema version, SHA-256 payload hash, canonical targets, principal/client/session, risk tier, action class, creation/expiry, one-time nonce, preview, recovery plan, and estimated impact. Changing any bound field invalidates the approval.
+
+Clients supporting MCP elicitation receive Allow Once / Deny choices. Other clients receive `APPROVAL_REQUIRED` and use `approve_action` or `deny_action`. Execution revalidates the request after approval to prevent time-of-check/time-of-use substitution.
+
+### Revocation and emergency controls
+
+The user can list trusted clients/devices, inspect scopes and last use, revoke a grant, disconnect a client, rotate the security epoch, and activate Emergency Stop. Revocation is transactional and becomes visible to authorization checks immediately. It blocks new actions and new durable-job steps; running jobs receive cancellation requests and cannot start another privileged step. Emergency Stop additionally disables action dispatch and requests cancellation of all controllable jobs until explicitly cleared through the local recovery interface.
+
+## 11. Credential Broker, privileged broker, and secret handling
+
+### Credential Broker
 
 - Credential material is stored through Windows Credential Manager or DPAPI-protected storage.
 - SQLite stores opaque references and metadata, never plaintext credentials.
 - Tools request use of a credential by reference; adapters receive it only for the execution window.
-- Creating, replacing, exporting, or deleting credential references requires appropriate approval.
+- Creating, replacing, exporting, or deleting credential references requires the authorization level selected by policy; a covering Full Access Grant satisfies it without another prompt.
 - Command output, logs, URLs, headers, environment values, screenshots metadata, and errors pass through layered secret redaction.
 - Known secret values are registered as ephemeral redaction fingerprints without persisting their plaintext.
 
 Untrusted file content, web pages, tool output, and document text can never modify security policy or approve actions.
+
+### Windows privileged broker
+
+Operations requiring Administrator or SYSTEM rights route through an optional Windows service installed once with the user's authorization. Installation records the service binary hash, server/device identity, broker protocol version, and recovery/uninstall instructions.
+
+The broker:
+
+- Uses a local named pipe with restrictive ACLs and exposes no network listener.
+- Mutually authenticates the MCP service and broker using the device identity.
+- Accepts only versioned structured requests with action, canonical targets, nonce, correlation ID, grant ID, and current security epoch.
+- Independently verifies that the request comes from the authenticated MCP and that a non-revoked persistent grant covers the privileged action.
+- Rejects replay, stale epoch, unsigned, malformed, or scope-mismatched requests.
+- Logs sanitized request/result evidence and returns structured errors.
+- Supports immediate revocation and Emergency Stop invalidation.
+
+After installation, a valid Full Access Grant authorizes covered administrator operations without repeated UAC prompts. The broker never grants rights beyond its Windows service token or bypasses Windows security boundaries.
 
 ## 12. Filesystem and search
 
@@ -315,10 +366,10 @@ Recovery points can include file copies, patches, metadata, Git commits/stashes 
 ### Process and system control
 
 - List, inspect, start, wait, terminate, and tree-terminate processes.
-- Inspect and manage Windows services with approval where state changes are sensitive.
+- Inspect and manage Windows services according to the active authorization mode and privileged-broker requirements.
 - Resolve port listeners and related process identity.
 - Inspect OS, CPU, memory, disks, network, environment, runtimes, and installed capability dependencies.
-- Broad termination, registry changes, package installs, service installation, firewall changes, and elevation use the Approval Gate.
+- Broad termination, registry changes, package installs, service installation, firewall changes, and elevation use centralized policy. A valid Full Access Grant executes covered operations immediately, routing administrator work through the privileged broker; restricted modes may require interactive approval.
 
 ## 15. Durable jobs
 
@@ -425,21 +476,23 @@ Operational telemetry includes:
 - The default listener binds to loopback only.
 - Remote exposure is opt-in and must use HTTPS through a documented reverse proxy or secure tunnel.
 - The authentication layer supports a local development token and a production provider interface for OAuth 2.1/PKCE-compatible remote MCP access.
-- Tokens are scoped, expiring, revocable, and stored through the Credential Broker.
+- Connection credentials/tokens are scoped, expiring or refreshable, revocable, and stored through the Credential Broker. Their lifecycle is distinct from the persistent trusted grant: after successful reauthentication of the same principal/client/device, the non-revoked grant is recognized again.
 - Origin, host, request size, timeout, concurrency, and rate limits are enforced at the gateway.
 - A deployment guide covers certificate setup, firewall scope, service startup, revocation, backup, update, and recovery.
 
-Installing a Windows service, creating firewall rules, or exposing a public endpoint requires explicit approval at execution time.
+Installing the privileged Windows service requires initial user authorization. Creating firewall rules or exposing a public endpoint requires the authorization level selected by policy; an active Full Access Grant can satisfy it. Every such change remains auditable, reversible where possible, and included in Emergency Stop guidance.
 
 ## 22. Security model
 
 Key controls are:
 
 - Authenticate every remote request and bind it to a principal/session.
+- Bind persistent grants to stable principal/client/server-device identities and the current security epoch.
 - Canonicalize paths and targets before authorization.
 - Separate untrusted content from control instructions.
-- Enforce permission tiers and exact approvals centrally.
+- Enforce authorization modes, scopes, risk tiers, revocation, and fallback interactive approvals centrally.
 - Use least privilege and short-lived credential access.
+- Treat Full Access as persistent-until-revoked authorization, never as anonymous access; reauthenticate connections before recognizing the grant.
 - Redact secrets before storage and response emission.
 - Apply bounded I/O, timeouts, cancellation, and concurrency limits.
 - Defend archive extraction, URL fetching, redirects, local-network access, and browser profiles.
@@ -452,15 +505,27 @@ Development follows test-driven implementation: a failing behavior test is writt
 
 ### Test layers
 
-- **Unit:** canonicalization, policy, approval hashes, redaction, state machines, schemas.
+- **Unit:** canonicalization, policy, persistent-grant evaluation, security epochs, approval hashes, redaction, state machines, schemas.
 - **Contract:** MCP registration, tool schema versions, structured errors, compatibility manifests.
 - **Integration:** SQLite migrations/recovery, filesystem fixtures, PTY, jobs, locks, watches, transactions.
 - **Adapter:** capability checks with controlled test assets and mocked dangerous edges.
-- **Fault injection:** process death, HTTP disconnect, server restart, DB busy, stale lock, partial write.
+- **Fault injection:** process death, HTTP disconnect, server restart, DB busy, stale lock, partial write, grant revocation during a durable job, and broker disconnect.
 - **Acceptance:** Master Spec scenarios A–L and the complete parity checklist.
-- **Security:** path traversal, prompt-injection separation, credential leakage, approval replay, SSRF, archive bombs.
+- **Security:** path traversal, prompt-injection separation, credential leakage, grant forgery/replay/scope confusion, revoked or stale-epoch grants, approval replay, SSRF, and archive bombs.
 
 Acceptance tests use a dedicated fixture root and disposable browser/profile/process resources. Tests do not touch unrelated user files.
+
+### Persistent Full Access acceptance scenario
+
+The release suite must prove this exact sequence:
+
+1. Connect a previously unknown authenticated client and grant Full Access once.
+2. Create/edit files, run terminal commands, control a test process, and perform disposable GUI/browser actions without further approval prompts.
+3. Close the chat, open a new chat, reauthenticate the same client, and continue without a new grant.
+4. Restart the MCP server and repeat a covered mutation without a new grant.
+5. Reboot Windows in the dedicated system acceptance environment and repeat a covered action without a new grant.
+6. Revoke the grant and verify that the next action and next durable-job step are rejected until authorization is granted again.
+7. Verify that audit records identify the principal, client, grant, action, target, session/job, timestamp, and sanitized result throughout.
 
 ## 24. Delivery phases
 
@@ -471,7 +536,7 @@ The implementation proceeds continuously in the user-approved order, with a chec
 3. Filesystem and search.
 4. Terminal and process control.
 5. Persistent jobs and reconciliation.
-6. Approval Gate.
+6. Persistent authorization modes, revocation, optional Approval Gate, and privileged broker.
 7. Git, system, and network.
 8. Media, archives, and rich formats.
 9. GUI automation.
@@ -491,7 +556,7 @@ The completed repository includes:
 
 - Tool inventory with schemas, versions, tiers, dry-run behavior, and examples.
 - Architecture and data-flow documentation.
-- Security, Approval Gate, Credential Broker, and redaction documentation.
+- Security, persistent Full Access, revocation/Emergency Stop, optional Approval Gate, Credential Broker, privileged broker, and redaction documentation.
 - Durable jobs, operational state, runtime checkpoints, project-owned checkpoint helpers, transactions, locks, watches, schedules, and artifact documentation.
 - Local setup, remote HTTPS setup, operation, backup, restore, update, and troubleshooting guides.
 - GUI/browser limitations and recovery guidance.
@@ -506,15 +571,17 @@ The project is complete only when:
 
 1. The Master Spec and approved additions are represented in the tool inventory or explicitly documented as a verified platform constraint.
 2. All required tool schemas are versioned and contract-tested.
-3. Approval replay, payload alteration, secret leakage, and untrusted-content policy escalation tests fail safely.
+3. Grant forgery/replay, revoked/stale-epoch grants, approval replay, payload alteration, secret leakage, and untrusted-content policy escalation tests fail safely.
 4. A durable job survives client disconnect and reconciles correctly after server restart.
 5. Search streaming, interactive terminal, transactions, locks, watches, schedules, runtime checkpoints, project checkpoint discovery helpers, and artifacts pass end-to-end tests.
 6. Filesystem, Git, network, archive, media, rich-document, GUI, and browser workflows produce verification evidence.
 7. `capability_self_test` and `health_report` accurately report ready, degraded, unavailable, and failed capabilities.
-8. Local and remote authenticated connection paths are documented and verified.
-9. Master Spec acceptance scenarios A–L pass on safe fixtures.
-10. Documentation, parity matrix, acceptance evidence, and all source are committed to Git.
+8. A Full Access Grant persists across chat reconnect, MCP restart, and Windows reboot, then stops authorizing immediately after revoke, as proven by the required acceptance scenario.
+9. The privileged broker accepts only authenticated, covered, current-epoch requests and requires no per-command UAC prompt after authorized installation.
+10. Local and remote authenticated connection paths are documented and verified.
+11. Master Spec acceptance scenarios A–L pass on safe fixtures.
+12. Documentation, parity matrix, acceptance evidence, and all source are committed to Git.
 
 ## 27. Thai review summary
 
-เอกสารนี้ยืนยันว่าจะสร้างเซิร์ฟเวอร์ใหม่ใน `E:\Remote-MCP-Server` โดยไม่เอาโค้ดของโปรเจกต์เก่ามาปน ใช้ Master Spec เป็นข้อกำหนดหลัก และเพิ่มระบบสถานะการทำงานถาวร งานเบื้องหลัง การอนุมัติแบบผูกกับคำสั่งจริง การย้อนกลับ การล็อกทรัพยากร การเฝ้าดู การตั้งเวลา คลังผลงาน การจัดการรหัสลับ การแจ้งเตือน GUI และ Browser ตามที่ผู้ใช้กำหนด MCP เป็นเครื่องมือกลางที่ไม่ผูกกับโปรเจกต์: ความรู้ กฎ ประวัติ และ checkpoint ของงานต้องอยู่ในโฟลเดอร์โปรเจกต์นั้นเอง ส่วนฐานข้อมูล MCP เก็บเฉพาะสถานะเชิงปฏิบัติการที่ namespace แยก workspace/session ชัดเจน ทุกงานเสี่ยงต้องแสดงผลกระทบและขออนุมัติแบบเจาะจง ขณะที่งานอ่านข้อมูลทั่วไปทำได้ทันที ระบบต้องพิสูจน์ผลลัพธ์ กู้คืนได้ และทำงานต่อหลังการเชื่อมต่อหลุดหรือเซิร์ฟเวอร์เริ่มใหม่ได้
+เอกสารนี้ยืนยันว่าจะสร้างเซิร์ฟเวอร์ใหม่ใน `E:\Remote-MCP-Server` โดยไม่เอาโค้ดของโปรเจกต์เก่ามาปน ใช้ Master Spec เป็นข้อกำหนดหลัก และเพิ่มระบบสถานะการทำงานถาวร งานเบื้องหลัง Full Access แบบถาวรจนกว่าจะ revoke การอนุมัติสำรองสำหรับ restricted mode การย้อนกลับ การล็อกทรัพยากร การเฝ้าดู การตั้งเวลา คลังผลงาน การจัดการรหัสลับ privileged broker การแจ้งเตือน GUI และ Browser ตามที่ผู้ใช้กำหนด MCP เป็นเครื่องมือกลางที่ไม่ผูกกับโปรเจกต์: ความรู้ กฎ ประวัติ และ checkpoint ของงานต้องอยู่ในโฟลเดอร์โปรเจกต์นั้นเอง ส่วนฐานข้อมูล MCP เก็บเฉพาะสถานะเชิงปฏิบัติการที่ namespace แยก workspace/session ชัดเจน ผู้ใช้ Full Access อนุญาตครั้งเดียวแล้วระบบทำงานต่อได้ข้าม chat, reconnect, server restart และ Windows reboot โดยไม่ถามรายคำสั่งจนกว่าจะ revoke แต่ทุกงานยังถูกตรวจ policy, scope, OS privilege, audit และ secret redaction ระบบต้องพิสูจน์ผลลัพธ์ กู้คืนได้ และทำงานต่อหลังการเชื่อมต่อหลุดหรือเซิร์ฟเวอร์เริ่มใหม่ได้
