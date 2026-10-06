@@ -7,6 +7,7 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import type { Request, Response } from "express";
 
+import { createFilesystemAdapter, type FilesystemAdapter } from "@remote-mcp/adapters";
 import {
   createApprovalService,
   createAuditService,
@@ -25,6 +26,7 @@ import { identityFromRequest, sameStableIdentity } from "./context.js";
 import { createMcpServer } from "./create-mcp-server.js";
 import { ToolRegistry } from "./tool-registry.js";
 import { registerAuthorizationTools } from "./tools/authorization.js";
+import { registerFilesystemTools } from "./tools/filesystem.js";
 import { registerHealthTool } from "./tools/health.js";
 import { registerServerInfoTool } from "./tools/server-info.js";
 
@@ -32,6 +34,7 @@ export interface CreateHttpServerOptions extends Partial<ServerConfig> {
   readonly database: OperationalDatabase;
   readonly protector?: SecretProtector;
   readonly localDevelopmentToken?: string;
+  readonly filesystem?: FilesystemAdapter;
 }
 
 export interface HttpServerHandle {
@@ -81,6 +84,7 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
   const audit = createAuditService({ database: options.database, redactor: createRedactor() });
   const registry = new ToolRegistry();
   registerAuthorizationTools(registry, { grants, emergencyStop });
+  registerFilesystemTools(registry, options.filesystem ?? createFilesystemAdapter());
   registerHealthTool(registry, options.database);
   registerServerInfoTool(registry, grants);
 

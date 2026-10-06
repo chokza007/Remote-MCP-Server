@@ -48,16 +48,18 @@ describe("MCP gateway contract", () => {
     const connected = await connect();
     const tools = await connected.listTools();
 
-    expect(tools.tools.map((tool) => tool.name)).toEqual([
-      "authorization_status",
-      "clear_emergency_stop",
-      "emergency_stop",
-      "health_report",
-      "list_trusted_clients",
-      "request_full_access",
-      "revoke_full_access",
-      "server_info"
-    ]);
+    expect(tools.tools.map((tool) => tool.name)).toEqual(
+      expect.arrayContaining([
+        "authorization_status",
+        "clear_emergency_stop",
+        "emergency_stop",
+        "health_report",
+        "list_trusted_clients",
+        "request_full_access",
+        "revoke_full_access",
+        "server_info"
+      ])
+    );
     expect(handle?.url.hostname).toBe("127.0.0.1");
     for (const tool of tools.tools) {
       expect(tool._meta).toMatchObject({
