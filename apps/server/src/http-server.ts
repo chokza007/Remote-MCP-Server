@@ -10,8 +10,10 @@ import type { Request, Response } from "express";
 import {
   createFilesystemAdapter,
   createSearchService,
+  createTerminalService,
   type FilesystemAdapter,
-  type SearchService
+  type SearchService,
+  type TerminalService
 } from "@remote-mcp/adapters";
 import {
   createApprovalService,
@@ -34,6 +36,7 @@ import { registerAuthorizationTools } from "./tools/authorization.js";
 import { registerFilesystemTools } from "./tools/filesystem.js";
 import { registerHealthTool } from "./tools/health.js";
 import { registerSearchTools } from "./tools/search.js";
+import { registerTerminalTools } from "./tools/terminal.js";
 import { registerServerInfoTool } from "./tools/server-info.js";
 
 export interface CreateHttpServerOptions extends Partial<ServerConfig> {
@@ -42,6 +45,7 @@ export interface CreateHttpServerOptions extends Partial<ServerConfig> {
   readonly localDevelopmentToken?: string;
   readonly filesystem?: FilesystemAdapter;
   readonly search?: SearchService;
+  readonly terminal?: TerminalService;
 }
 
 export interface HttpServerHandle {
@@ -88,12 +92,22 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
   const approvals = createApprovalService({ database: options.database });
   const emergencyStop = createEmergencyStopService({ database: options.database });
   const policy = createPolicyEngine({ grants, approvals, emergencyStop });
-  const audit = createAuditService({ database: options.database, redactor: createRedactor() });
+  const redactor = createRedactor();
+  const audit = createAuditService({ database: options.database, redactor });
   const registry = new ToolRegistry();
   registerAuthorizationTools(registry, { grants, emergencyStop });
   registerFilesystemTools(registry, options.filesystem ?? createFilesystemAdapter());
   registerHealthTool(registry, options.database);
   registerSearchTools(registry, options.search ?? createSearchService({ database: options.database }));
+  registerTerminalTools(
+    registry,
+    options.terminal ??
+      createTerminalService({
+        database: options.database,
+        allowedShells: ["powershell", "cmd", "python", "node"],
+        redactOutput: (value) => redactor.redact(value) as string
+      })
+  );
   registerServerInfoTool(registry, grants);
 
   const sessions = new Map<string, SessionRecord>();
