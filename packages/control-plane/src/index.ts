@@ -33,3 +33,17 @@ export {
   PolicyEngine,
   type PolicyEngineOptions
 } from "./policy/policy-engine.js";
+export {
+  createRedactor,
+  Redactor,
+  type RedactedValue
+} from "./security/redactor.js";
+export type { Disposable } from "./security/secret-fingerprints.js";
+export {
+  createAuditService,
+  AuditService,
+  type AuditIntegrityResult,
+  type AuditPage,
+  type AuditServiceOptions
+} from "./audit/audit-service.js";
+export type { AuditEventId, AuditEventInput } from "./audit/audit-event.js";
