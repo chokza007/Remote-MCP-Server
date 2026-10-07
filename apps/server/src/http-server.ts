@@ -1,5 +1,6 @@
 import { randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import type { AddressInfo } from "node:net";
+import { resolve } from "node:path";
 
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import { createMcpExpressApp } from "@modelcontextprotocol/sdk/server/express.js";
@@ -14,8 +15,10 @@ import {
   createEnvironmentService,
   createArchiveService,
   createDownloadService,
+  createDocumentService,
   createGitAdapter,
   createHttpService,
+  createMediaService,
   createPortService,
   createProcessService,
   createSearchService,
@@ -25,9 +28,11 @@ import {
   type EnvironmentService,
   type ArchiveService,
   type DownloadService,
+  type DocumentService,
   type FilesystemAdapter,
   type GitAdapter,
   type HttpService,
+  type MediaService,
   type PortService,
   type ProcessService,
   type SearchService,
@@ -55,10 +60,12 @@ import { createMcpServer } from "./create-mcp-server.js";
 import { ToolRegistry } from "./tool-registry.js";
 import { registerAuthorizationTools } from "./tools/authorization.js";
 import { registerArchiveTools } from "./tools/archives.js";
+import { registerDocumentTools } from "./tools/documents.js";
 import { registerFilesystemTools } from "./tools/filesystem.js";
 import { registerGitTools } from "./tools/git.js";
 import { registerHealthTool } from "./tools/health.js";
 import { registerJobTools } from "./tools/jobs.js";
+import { registerMediaTools } from "./tools/media.js";
 import { registerNetworkTools } from "./tools/network.js";
 import { registerSearchTools } from "./tools/search.js";
 import { registerSystemTools } from "./tools/system.js";
@@ -73,7 +80,11 @@ export interface CreateHttpServerOptions extends Partial<ServerConfig> {
   readonly archives?: ArchiveService;
   readonly http?: HttpService;
   readonly downloads?: DownloadService;
+  readonly documents?: DocumentService;
+  readonly documentHelperRoot?: string;
+  readonly pythonExecutable?: string;
   readonly git?: GitAdapter;
+  readonly media?: MediaService;
   readonly search?: SearchService;
   readonly terminal?: TerminalService;
   readonly processes?: ProcessService;
@@ -132,8 +143,13 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
   const audit = createAuditService({ database: options.database, redactor });
   const registry = new ToolRegistry();
   const http = options.http ?? createHttpService();
+  const documents = options.documents ?? createDocumentService({
+    helperRoot: options.documentHelperRoot ?? resolve("helpers/python"),
+    ...(options.pythonExecutable === undefined ? {} : { pythonExecutable: options.pythonExecutable })
+  });
   registerAuthorizationTools(registry, { grants, emergencyStop });
   registerArchiveTools(registry, options.archives ?? createArchiveService());
+  registerDocumentTools(registry, documents);
   registerFilesystemTools(registry, options.filesystem ?? createFilesystemAdapter());
   registerGitTools(registry, options.git ?? createGitAdapter());
   registerHealthTool(registry, options.database);
@@ -141,6 +157,7 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
     jobs: options.jobs ?? createJobService({ database: options.database }),
     grants
   });
+  registerMediaTools(registry, options.media ?? createMediaService());
   registerNetworkTools(registry, {
     http,
     downloads: options.downloads ?? createDownloadService({
@@ -278,6 +295,7 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
     close: async () => {
       await Promise.allSettled([...sessions.values()].map(({ transport }) => transport.close()));
       sessions.clear();
+      await documents.close();
       await new Promise<void>((resolve, reject) => {
         listener.close((error) => (error ? reject(error) : resolve()));
       });

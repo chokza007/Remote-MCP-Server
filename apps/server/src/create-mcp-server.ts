@@ -41,8 +41,16 @@ function sanitizedUrl(value: string): string {
 
 async function inferTargets(argumentsValue: Record<string, unknown>, toolName: string): Promise<readonly CanonicalTarget[]> {
   const inputs: Array<{ kind: "path" | "url" | "process" | "service" | "port" | "opaque"; value: string }> = [];
-  for (const key of ["path", "source", "destination", "root", "archive", "startPath", "cwd"] as const) {
+  for (const key of [
+    "path", "source", "destination", "root", "archive", "startPath", "cwd",
+    "input", "output", "outputDirectory"
+  ] as const) {
     if (typeof argumentsValue[key] === "string") inputs.push({ kind: "path", value: argumentsValue[key] });
+  }
+  if (Array.isArray(argumentsValue.inputs)) {
+    for (const value of argumentsValue.inputs) {
+      if (typeof value === "string") inputs.push({ kind: "path", value });
+    }
   }
   if (typeof argumentsValue.url === "string") inputs.push({ kind: "url", value: sanitizedUrl(argumentsValue.url) });
   if (typeof argumentsValue.pid === "number") inputs.push({ kind: "process", value: String(argumentsValue.pid) });

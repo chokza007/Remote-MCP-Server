@@ -158,3 +158,45 @@ export {
   type ArchiveServiceOptions,
   type ArchiveVerification
 } from "./archive/archive-service.js";
+export {
+  createFfmpegAdapter,
+  FfmpegAdapter,
+  type FfmpegAdapterOptions,
+  type MediaCommand,
+  type MediaCommandControl,
+  type MediaCommandResult
+} from "./media/ffmpeg-adapter.js";
+export {
+  createMediaService,
+  MediaService,
+  type ConcatInput,
+  type ExtractFramesInput,
+  type ExtractFramesResult,
+  type MediaMutationInput,
+  type MediaMutationResult,
+  type MediaProbe,
+  type MediaServiceOptions,
+  type MediaStream,
+  type TranscodeInput,
+  type TrimInput
+} from "./media/media-service.js";
+export {
+  verifyMediaProbe,
+  type MediaVerificationExpectation,
+  type MediaVerificationResult
+} from "./media/media-verifier.js";
+export {
+  createDocumentHelperClient,
+  DocumentHelperClient,
+  type DocumentHelperClientOptions,
+  type DocumentProgress,
+  type HelperRequestOptions
+} from "./documents/helper-client.js";
+export {
+  createDocumentService,
+  DocumentService,
+  type DocumentConvertInput,
+  type DocumentRenderInput,
+  type DocumentResult,
+  type DocumentServiceOptions
+} from "./documents/document-service.js";

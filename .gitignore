@@ -6,6 +6,8 @@ coverage/
 var/
 *.log
 *.tsbuildinfo
+__pycache__/
+*.py[cod]
 broker/bin/
 broker/obj/
 .env
