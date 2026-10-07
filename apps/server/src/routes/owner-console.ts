@@ -12,13 +12,13 @@ function escapeHtml(value: string): string {
 }
 
 const darkStyles = `
-  :root{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,sans-serif;background:#090d14;color:#ecf2fa}
-  *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(circle at top,#182235,#090d14 58%);color:#ecf2fa}
+  :root{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,sans-serif;background:#070b11;color:#ecf2fa}
+  *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#070b11;color:#ecf2fa}body{min-height:100vh;background:radial-gradient(circle at top,#182235,#090d14 58%);color:#ecf2fa}
   main{width:min(760px,calc(100% - 32px));margin:48px auto;padding:32px;border:1px solid #2b3b52;border-radius:18px;background:#111823;box-shadow:0 24px 80px #0008}
   h1{margin-top:0;font-size:1.8rem}p,small{color:#aebed2;line-height:1.6}.card{padding:18px;margin:14px 0;border:1px solid #2b3b52;border-radius:12px;background:#151f2c}
-  label{display:block;margin:14px 0 6px;font-weight:650}input{width:100%;padding:12px;border:1px solid #3b506d;border-radius:9px;background:#0c121c;color:#fff}
+  label{display:block;margin:14px 0 6px;font-weight:650}input,select,textarea{width:100%;padding:12px;border:1px solid #3b506d;border-radius:9px;background:#0c121c!important;color:#eaf2ff!important;-webkit-text-fill-color:#eaf2ff;caret-color:#88b7ff}input:-webkit-autofill{-webkit-box-shadow:0 0 0 1000px #0c121c inset!important}
   button{padding:11px 18px;margin:14px 8px 0 0;border:0;border-radius:9px;background:#4f8cff;color:#07101f;font-weight:750;cursor:pointer}.danger{background:#ff6b7a}.muted{background:#2b3b52;color:#dce7f5}
-  code{word-break:break-all;color:#88b7ff}`;
+  code{word-break:break-all;color:#88b7ff}a{color:#88b7ff}.status{display:inline-block;padding:4px 9px;border-radius:999px;background:#173323;color:#72e6a0;font-weight:700}`;
 
 function page(title: string, body: string): string {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(title)}</title><style>${darkStyles}</style></head><body><main>${body}</main></body></html>`;
@@ -27,6 +27,16 @@ function page(title: string, body: string): string {
 function bearer(request: Request): string | undefined {
   const header = request.header("authorization");
   return header?.startsWith("Bearer ") ? header.slice(7) : undefined;
+}
+
+export function registerDarkLandingRoute(app: Express, endpoint: string): void {
+  app.get("/", (_request, response) => {
+    response.status(200).type("html").send(page("Remote MCP Server", `
+      <span class="status">ONLINE</span>
+      <h1>Remote MCP Server</h1>
+      <p>The project-agnostic MCP gateway is running. Connect an MCP client to <code>${escapeHtml(endpoint)}</code>.</p>
+      <div class="card"><strong>Persistent Full Access</strong><p>Authorization remains active until the owner revokes it. Important operations are audited and secrets are redacted.</p></div>`));
+  });
 }
 
 function requestString(request: Request, name: string): string {
@@ -122,7 +132,10 @@ export function registerOwnerConsoleRoutes(app: Express, options: {
 
   app.get("/owner", (request, response) => {
     if (bearer(request) !== options.ownerToken) {
-      response.status(401).setHeader("www-authenticate", "Bearer").end();
+      response.status(401).setHeader("www-authenticate", "Bearer").type("html").send(page(
+        "Owner authorization required",
+        "<h1>Owner authorization required</h1><p>Open this console through an authenticated owner session. The owner token is never displayed on this page.</p>"
+      ));
       return;
     }
     const cards = options.clients.list().map((client) => `

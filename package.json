@@ -13,7 +13,9 @@
   "scripts": {
     "build": "tsc -b",
     "dev": "tsx apps/server/src/index.ts",
+    "inventory": "tsx scripts/release/generate-inventory.ts",
     "lint": "tsc -b --pretty false",
+    "self-test": "tsx scripts/release/capability-self-test.ts",
     "start": "node apps/server/dist/service-main.js",
     "test": "vitest run",
     "test:acceptance": "vitest run tests/acceptance",

@@ -122,7 +122,7 @@ import { registerTransactionTools } from "./tools/transactions.js";
 import { registerWatchTools } from "./tools/watches.js";
 import { registerServerInfoTool } from "./tools/server-info.js";
 import { registerOAuthMetadataRoutes } from "./routes/oauth-metadata.js";
-import { registerOwnerConsoleRoutes } from "./routes/owner-console.js";
+import { registerDarkLandingRoute, registerOwnerConsoleRoutes } from "./routes/owner-console.js";
 
 export interface RemoteAuthOptions {
   readonly publicOrigin: string;
@@ -539,6 +539,7 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
 
   const sessions = new Map<string, SessionRecord>();
   const app = createMcpExpressApp({ host: config.host });
+  registerDarkLandingRoute(app, config.endpoint);
 
   if (options.remoteAuth !== undefined && oauthProvider && oauthClients && oauthTokens && ownerConsent) {
     const remote = options.remoteAuth;

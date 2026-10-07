@@ -109,6 +109,16 @@ describe("OAuth HTTPS MCP integration", () => {
   });
 
   test("publishes metadata and rejects insecure or spoofed proxy requests", async () => {
+    const landing = await fetch(new URL("/", handle.url));
+    const landingHtml = await landing.text();
+    expect(landing.status).toBe(200);
+    expect(landingHtml).toContain("color-scheme:dark");
+    expect(landingHtml).not.toMatch(/#fff(?:fff)?|background\s*:\s*white/iu);
+    const unauthorizedOwner = await fetch(new URL("/owner", handle.url), { headers: proxyHeaders });
+    const unauthorizedHtml = await unauthorizedOwner.text();
+    expect(unauthorizedOwner.status).toBe(401);
+    expect(unauthorizedHtml).toContain("color-scheme:dark");
+    expect(unauthorizedHtml).not.toMatch(/#fff(?:fff)?|background\s*:\s*white/iu);
     const metadata = await fetch(new URL("/.well-known/oauth-protected-resource", handle.url), { headers: proxyHeaders });
     expect(await metadata.json()).toMatchObject({
       resource: `${publicOrigin}/mcp`,

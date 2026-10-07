@@ -208,9 +208,13 @@ export {
   createDocumentService,
   DocumentService,
   type DocumentConvertInput,
+  type DocumentDocxUpdateInput,
   type DocumentRenderInput,
   type DocumentResult,
-  type DocumentServiceOptions
+  type DocumentServiceOptions,
+  type DocumentSpreadsheetUpdate,
+  type DocumentTextReplacement,
+  type DocumentXlsxUpdateInput
 } from "./documents/document-service.js";
 export {
   createGuiService,

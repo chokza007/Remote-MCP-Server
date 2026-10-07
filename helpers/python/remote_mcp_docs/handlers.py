@@ -227,8 +227,70 @@ def convert_document(path: Path, output: Path, requested_format: str) -> dict[st
     )
 
 
+def update_docx(path: Path, output: Path, replacements: Any) -> dict[str, Any]:
+    if kind_for(path) != "docx" or not isinstance(replacements, list) or not replacements:
+        raise ProtocolError("PROTOCOL_INVALID", "update_docx requires DOCX input and replacements.")
+    temporary = output.with_name(f".{output.name}.tmp")
+    replaced = 0
+    namespace = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+    ET.register_namespace("w", namespace)
+    try:
+        with zipfile.ZipFile(path, "r") as source, zipfile.ZipFile(temporary, "w") as destination:
+            for item in source.infolist():
+                data = source.read(item.filename)
+                if item.filename == "word/document.xml":
+                    root = ET.fromstring(data)
+                    for paragraph in root.findall(f".//{{{namespace}}}p"):
+                        nodes = paragraph.findall(f".//{{{namespace}}}t")
+                        if not nodes:
+                            continue
+                        text = "".join(node.text or "" for node in nodes)
+                        changed = False
+                        for replacement in replacements:
+                            if not isinstance(replacement, dict) or not isinstance(replacement.get("search"), str) or not isinstance(replacement.get("replace"), str) or not replacement["search"]:
+                                raise ProtocolError("PROTOCOL_INVALID", "Each DOCX replacement requires non-empty search and string replace values.")
+                            count = text.count(replacement["search"])
+                            if count:
+                                text = text.replace(replacement["search"], replacement["replace"])
+                                replaced += count
+                                changed = True
+                        if changed:
+                            nodes[0].text = text
+                            for node in nodes[1:]:
+                                node.text = ""
+                    data = ET.tostring(root, encoding="utf-8", xml_declaration=True)
+                destination.writestr(item, data)
+        os.replace(temporary, output)
+    finally:
+        temporary.unlink(missing_ok=True)
+    inspected = inspect_document(output)
+    return {"kind": "docx", "valid": True, "output": str(output.resolve()), "replaced": replaced, "inspection": inspected}
+
+
+def update_xlsx(path: Path, output: Path, updates: Any) -> dict[str, Any]:
+    if kind_for(path) != "xlsx" or not isinstance(updates, list) or not updates:
+        raise ProtocolError("PROTOCOL_INVALID", "update_xlsx requires XLSX input and updates.")
+    openpyxl = load_dependency("openpyxl", "XLSX support")
+    temporary = output.with_name(f".{output.name}.tmp{output.suffix}")
+    workbook = openpyxl.load_workbook(path, read_only=False, data_only=False)
+    try:
+        for update in updates:
+            if not isinstance(update, dict) or not isinstance(update.get("sheet"), str) or not isinstance(update.get("cell"), str):
+                raise ProtocolError("PROTOCOL_INVALID", "Each XLSX update requires sheet, cell, and value fields.")
+            if update["sheet"] not in workbook.sheetnames:
+                raise ProtocolError("DOCUMENT_INVALID", f"Unknown worksheet: {update['sheet']}", target=str(path))
+            workbook[update["sheet"]][update["cell"]] = update.get("value")
+        workbook.save(temporary)
+        os.replace(temporary, output)
+    finally:
+        workbook.close()
+        temporary.unlink(missing_ok=True)
+    inspected = inspect_document(output)
+    return {"kind": "xlsx", "valid": True, "output": str(output.resolve()), "updated": len(updates), "inspection": inspected}
+
+
 def dispatch(method: str, params: dict[str, Any], progress: Progress) -> Any:
-    path = require_file(params.get("path") if method not in {"render", "convert"} else params.get("input"))
+    path = require_file(params.get("path") if method not in {"render", "convert", "update_docx", "update_xlsx"} else params.get("input"))
     progress(0.05, f"Starting {method}")
     if method == "inspect":
         return inspect_document(path)
@@ -251,4 +313,13 @@ def dispatch(method: str, params: dict[str, Any], progress: Progress) -> Any:
         if not isinstance(output, str) or not isinstance(requested_format, str):
             raise ProtocolError("PROTOCOL_INVALID", "convert requires output and format strings.")
         return convert_document(path, Path(output).resolve(), requested_format)
+    if method in {"update_docx", "update_xlsx"}:
+        output = params.get("output")
+        if not isinstance(output, str):
+            raise ProtocolError("PROTOCOL_INVALID", f"{method} requires an output string.")
+        resolved_output = Path(output).resolve()
+        resolved_output.parent.mkdir(parents=True, exist_ok=True)
+        if method == "update_docx":
+            return update_docx(path, resolved_output, params.get("replacements"))
+        return update_xlsx(path, resolved_output, params.get("updates"))
     raise ProtocolError("CAPABILITY_UNAVAILABLE", f"Unknown document operation: {method}.")

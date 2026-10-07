@@ -26,6 +26,33 @@ export interface DocumentConvertInput {
   readonly options?: HelperRequestOptions;
 }
 
+export interface DocumentTextReplacement {
+  readonly search: string;
+  readonly replace: string;
+}
+
+export interface DocumentDocxUpdateInput {
+  readonly input: string;
+  readonly output: string;
+  readonly replacements: readonly DocumentTextReplacement[];
+  readonly overwrite?: boolean;
+  readonly options?: HelperRequestOptions;
+}
+
+export interface DocumentSpreadsheetUpdate {
+  readonly sheet: string;
+  readonly cell: string;
+  readonly value: string | number | boolean | null;
+}
+
+export interface DocumentXlsxUpdateInput {
+  readonly input: string;
+  readonly output: string;
+  readonly updates: readonly DocumentSpreadsheetUpdate[];
+  readonly overwrite?: boolean;
+  readonly options?: HelperRequestOptions;
+}
+
 export interface DocumentServiceOptions extends DocumentHelperClientOptions {
   readonly client?: DocumentHelperClient;
 }
@@ -92,6 +119,30 @@ export class DocumentService {
     return { ...result, output };
   }
 
+  public async updateDocx(input: DocumentDocxUpdateInput): Promise<DocumentResult & { readonly output: string; readonly valid: true }> {
+    if (input.replacements.length === 0 || input.replacements.some((item) => item.search.length === 0)) {
+      throw new RemoteMcpError({
+        errorCode: "DOCUMENT_INVALID", message: "DOCX replacement searches must be non-empty.", retryable: false,
+        suggestedAction: "Provide at least one exact non-empty text replacement.", target: resolve(input.input)
+      });
+    }
+    return this.update("update_docx", input.input, input.output, input.overwrite, {
+      replacements: input.replacements
+    }, input.options);
+  }
+
+  public async updateXlsx(input: DocumentXlsxUpdateInput): Promise<DocumentResult & { readonly output: string; readonly valid: true }> {
+    if (input.updates.length === 0 || input.updates.some((item) => item.sheet.length === 0 || !/^[A-Z]{1,3}[1-9][0-9]*$/iu.test(item.cell))) {
+      throw new RemoteMcpError({
+        errorCode: "DOCUMENT_INVALID", message: "XLSX updates require a sheet name and an A1-style cell address.", retryable: false,
+        suggestedAction: "Provide at least one update such as Sheet1!A1.", target: resolve(input.input)
+      });
+    }
+    return this.update("update_xlsx", input.input, input.output, input.overwrite, {
+      updates: input.updates
+    }, input.options);
+  }
+
   public close(): Promise<void> {
     return this.client?.close() ?? Promise.resolve();
   }
@@ -99,6 +150,37 @@ export class DocumentService {
   private helper(): DocumentHelperClient {
     this.client ??= createDocumentHelperClient(this.options);
     return this.client;
+  }
+
+  private async update(
+    method: "update_docx" | "update_xlsx",
+    input: string,
+    outputValue: string,
+    overwrite: boolean | undefined,
+    payload: Record<string, unknown>,
+    options: HelperRequestOptions | undefined
+  ): Promise<DocumentResult & { readonly output: string; readonly valid: true }> {
+    const source = await requireDocument(input);
+    const output = resolve(outputValue);
+    if (source === output) {
+      throw new RemoteMcpError({
+        errorCode: "DOCUMENT_INVALID", message: "Document updates require a separate output path.", retryable: false,
+        suggestedAction: "Choose a new output path so the source remains recoverable.", target: output
+      });
+    }
+    if (!overwrite && await stat(output).catch(() => undefined)) {
+      throw new RemoteMcpError({
+        errorCode: "DOCUMENT_OUTPUT_EXISTS", message: "The document destination already exists.", retryable: false,
+        suggestedAction: "Choose a new destination or explicitly allow overwrite.", target: output
+      });
+    }
+    await mkdir(dirname(output), { recursive: true });
+    const result = await this.helper().request<DocumentResult & { readonly valid: true }>(
+      method,
+      { input: source, output, ...payload },
+      options
+    );
+    return { ...result, output };
   }
 }
 

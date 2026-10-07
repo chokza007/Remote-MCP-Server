@@ -1,0 +1,6707 @@
+{
+  "schemaVersion": 1,
+  "serverVersion": "0.1.0",
+  "generatedFrom": "runtime ToolRegistry through MCP tools/list",
+  "generatedAt": "release-generated",
+  "tools": [
+    {
+      "name": "archive_create",
+      "version": "1.0.0",
+      "title": "Create archive",
+      "description": "Creates a ZIP from explicit source/path pairs.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "archive": {
+            "type": "string",
+            "minLength": 1
+          },
+          "entries": {
+            "minItems": 1,
+            "maxItems": 10000,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "source": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "path": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "source",
+                "path"
+              ]
+            }
+          },
+          "overwrite": {
+            "type": "boolean"
+          },
+          "dryRun": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "archive",
+          "entries"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "archive_extract",
+      "version": "1.0.0",
+      "title": "Extract archive",
+      "description": "Safely extracts a ZIP after validating every entry and target.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "archive": {
+            "type": "string",
+            "minLength": 1
+          },
+          "destination": {
+            "type": "string",
+            "minLength": 1
+          },
+          "overwrite": {
+            "type": "boolean"
+          },
+          "dryRun": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "archive",
+          "destination"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "archive_list",
+      "version": "1.0.0",
+      "title": "List archive",
+      "description": "Lists validated ZIP entries without extraction.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "archive": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "archive"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "archive_verify",
+      "version": "1.0.0",
+      "title": "Verify archive",
+      "description": "Validates and decompresses a ZIP within configured safety limits.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "archive": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "archive"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "artifact_delete",
+      "version": "1.0.0",
+      "title": "Delete artifact",
+      "description": "Deletes an owned artifact record and unshared managed bytes when retention allows it.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "artifactId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "force": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "artifactId",
+          "workspaceId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "artifact_get",
+      "version": "1.0.0",
+      "title": "Get artifact",
+      "description": "Reads owned artifact metadata without reading artifact bytes.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "artifactId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        },
+        "required": [
+          "artifactId",
+          "workspaceId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "artifact_lineage",
+      "version": "1.0.0",
+      "title": "Read artifact lineage",
+      "description": "Reads owned parent and child artifact relations.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "artifactId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        },
+        "required": [
+          "artifactId",
+          "workspaceId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "artifact_list",
+      "version": "1.0.0",
+      "title": "List artifacts",
+      "description": "Lists artifact metadata in one owned workspace.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        },
+        "required": [
+          "workspaceId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "artifact_register",
+      "version": "1.0.0",
+      "title": "Register artifact",
+      "description": "Registers a managed content-addressed artifact or a verified external reference.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "storage": {
+            "type": "string",
+            "enum": [
+              "managed",
+              "reference"
+            ]
+          },
+          "mimeType": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "metadata": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {}
+          },
+          "retention": {
+            "type": "object",
+            "properties": {
+              "pinned": {
+                "type": "boolean"
+              },
+              "retainUntil": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+              }
+            }
+          }
+        },
+        "required": [
+          "workspaceId",
+          "path",
+          "kind",
+          "storage"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "artifact_relate",
+      "version": "1.0.0",
+      "title": "Relate artifacts",
+      "description": "Records an owned parent-child artifact lineage edge.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "parentArtifactId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "childArtifactId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "relation": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "metadata": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "workspaceId",
+          "parentArtifactId",
+          "childArtifactId",
+          "relation"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "artifact_retain",
+      "version": "1.0.0",
+      "title": "Set artifact retention",
+      "description": "Pins an artifact or sets its minimum retention timestamp.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "artifactId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "pinned": {
+            "type": "boolean"
+          },
+          "retainUntil": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          }
+        },
+        "required": [
+          "artifactId",
+          "workspaceId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "artifact_verify",
+      "version": "1.0.0",
+      "title": "Verify artifact",
+      "description": "Re-hashes an artifact and optionally relocates a missing reference by matching content hash.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "artifactId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "candidatePaths": {
+            "maxItems": 1000,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "required": [
+          "artifactId",
+          "workspaceId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "authorization_status",
+      "version": "1.0.0",
+      "title": "Authorization status",
+      "description": "Reports authorization for this client.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "browser_click",
+      "version": "1.0.0",
+      "title": "click browser target",
+      "description": "clicks one exact semantic target and verifies completion.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "tabId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "target": {
+            "type": "object",
+            "properties": {
+              "role": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "name": {
+                "type": "string",
+                "maxLength": 4096
+              },
+              "label": {
+                "type": "string",
+                "maxLength": 4096
+              },
+              "text": {
+                "type": "string",
+                "maxLength": 16384
+              },
+              "testId": {
+                "type": "string",
+                "maxLength": 4096
+              },
+              "css": {
+                "type": "string",
+                "maxLength": 16384
+              }
+            }
+          },
+          "timeoutMs": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 3600000
+          }
+        },
+        "required": [
+          "tabId",
+          "target"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "browser_close",
+      "version": "1.0.0",
+      "title": "Close managed browser",
+      "description": "Closes a managed context and releases its profile lock.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "contextId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "contextId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "browser_contexts",
+      "version": "1.0.0",
+      "title": "List browser contexts",
+      "description": "Lists active managed browser contexts without cookies or tokens.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "browser_download",
+      "version": "1.0.0",
+      "title": "Download browser artifact",
+      "description": "Downloads through one semantic target and returns hash evidence.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": true
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "tabId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "target": {
+            "type": "object",
+            "properties": {
+              "role": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "name": {
+                "type": "string",
+                "maxLength": 4096
+              },
+              "label": {
+                "type": "string",
+                "maxLength": 4096
+              },
+              "text": {
+                "type": "string",
+                "maxLength": 16384
+              },
+              "testId": {
+                "type": "string",
+                "maxLength": 4096
+              },
+              "css": {
+                "type": "string",
+                "maxLength": 16384
+              }
+            }
+          },
+          "timeoutMs": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 3600000
+          }
+        },
+        "required": [
+          "tabId",
+          "target"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "browser_evaluate",
+      "version": "1.0.0",
+      "title": "Evaluate page expression",
+      "description": "Evaluates a bounded same-origin expression under non-exporting policy.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": true
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "tabId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "expression": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 65536
+          }
+        },
+        "required": [
+          "tabId",
+          "expression"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "browser_inspect",
+      "version": "1.0.0",
+      "title": "Inspect browser page",
+      "description": "Returns a redacted semantic page model without form values, cookies, or tokens.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "tabId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "tabId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "browser_launch",
+      "version": "1.0.0",
+      "title": "Launch managed browser",
+      "description": "Launches a workspace-namespaced persistent browser profile.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "headless": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "workspaceId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "browser_navigate",
+      "version": "1.0.0",
+      "title": "Navigate browser",
+      "description": "Navigates an existing or initial tab under browser URL policy.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": true
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "contextId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "tabId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "timeoutMs": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 3600000
+          }
+        },
+        "required": [
+          "contextId",
+          "url"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "browser_pdf",
+      "version": "1.0.0",
+      "title": "Render browser PDF",
+      "description": "Renders the current page to a PDF artifact with hash evidence.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "tabId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          }
+        },
+        "required": [
+          "tabId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "browser_screenshot",
+      "version": "1.0.0",
+      "title": "Capture browser screenshot",
+      "description": "Captures a full-page PNG with hash evidence.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "tabId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          }
+        },
+        "required": [
+          "tabId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "browser_tabs",
+      "version": "1.0.0",
+      "title": "List browser tabs",
+      "description": "Lists tabs in a managed browser context.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "contextId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "contextId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "browser_type",
+      "version": "1.0.0",
+      "title": "type browser target",
+      "description": "types one exact semantic target and verifies completion.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "tabId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "target": {
+            "type": "object",
+            "properties": {
+              "role": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "name": {
+                "type": "string",
+                "maxLength": 4096
+              },
+              "label": {
+                "type": "string",
+                "maxLength": 4096
+              },
+              "text": {
+                "type": "string",
+                "maxLength": 16384
+              },
+              "testId": {
+                "type": "string",
+                "maxLength": 4096
+              },
+              "css": {
+                "type": "string",
+                "maxLength": 16384
+              }
+            }
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 1048576
+          },
+          "timeoutMs": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 3600000
+          }
+        },
+        "required": [
+          "tabId",
+          "target",
+          "text"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "browser_upload",
+      "version": "1.0.0",
+      "title": "Upload browser files",
+      "description": "Sets files on one semantic file input.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "tabId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "target": {
+            "type": "object",
+            "properties": {
+              "role": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "name": {
+                "type": "string",
+                "maxLength": 4096
+              },
+              "label": {
+                "type": "string",
+                "maxLength": 4096
+              },
+              "text": {
+                "type": "string",
+                "maxLength": 16384
+              },
+              "testId": {
+                "type": "string",
+                "maxLength": 4096
+              },
+              "css": {
+                "type": "string",
+                "maxLength": 16384
+              }
+            }
+          },
+          "paths": {
+            "minItems": 1,
+            "maxItems": 1000,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "timeoutMs": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 3600000
+          }
+        },
+        "required": [
+          "tabId",
+          "target",
+          "paths"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "browser_wait",
+      "version": "1.0.0",
+      "title": "Wait for browser state",
+      "description": "Waits for a semantic element state.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "tabId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "target": {
+            "type": "object",
+            "properties": {
+              "role": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "name": {
+                "type": "string",
+                "maxLength": 4096
+              },
+              "label": {
+                "type": "string",
+                "maxLength": 4096
+              },
+              "text": {
+                "type": "string",
+                "maxLength": 16384
+              },
+              "testId": {
+                "type": "string",
+                "maxLength": 4096
+              },
+              "css": {
+                "type": "string",
+                "maxLength": 16384
+              }
+            }
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "attached",
+              "detached",
+              "visible",
+              "hidden"
+            ]
+          },
+          "timeoutMs": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 3600000
+          }
+        },
+        "required": [
+          "tabId",
+          "target",
+          "state"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "capability_manifest",
+      "version": "1.0.0",
+      "title": "Capability manifest",
+      "description": "Returns the checked runtime capability contract.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "capability_self_test",
+      "version": "1.0.0",
+      "title": "Run capability self-test",
+      "description": "Runs safe isolated checks as a durable verified job.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "selection": {
+            "default": [],
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "clear_emergency_stop",
+      "version": "1.0.0",
+      "title": "Clear emergency stop",
+      "description": "Clears the global emergency stop.",
+      "riskTier": 3,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "credential_create",
+      "version": "1.0.0",
+      "title": "Create credential",
+      "description": "Stores secret material in Windows Credential Manager and returns only opaque metadata.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "credentialType": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "secret": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 65536
+          },
+          "username": {
+            "type": "string",
+            "maxLength": 1024
+          },
+          "metadata": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "workspaceId",
+          "credentialType",
+          "secret"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "credential_delete",
+      "version": "1.0.0",
+      "title": "Delete credential",
+      "description": "Deletes owned secret material and tombstones its opaque reference.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "credentialId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "workspaceId",
+          "credentialId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "credential_list",
+      "version": "1.0.0",
+      "title": "List credential metadata",
+      "description": "Lists owned credential references without reading secret material.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        },
+        "required": [
+          "workspaceId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "credential_update",
+      "version": "1.0.0",
+      "title": "Update credential",
+      "description": "Replaces secret material in Windows Credential Manager without exposing it.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "credentialId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "secret": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 65536
+          },
+          "username": {
+            "type": "string",
+            "maxLength": 1024
+          }
+        },
+        "required": [
+          "workspaceId",
+          "credentialId",
+          "secret"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "credential_validate",
+      "version": "1.0.0",
+      "title": "Validate credential",
+      "description": "Checks that an owned vault credential is available without exporting its value.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "credentialId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "workspaceId",
+          "credentialId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "document_convert",
+      "version": "1.0.0",
+      "title": "Convert document",
+      "description": "Converts a supported document to an explicit output format and validates the output.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "minLength": 1
+          },
+          "output": {
+            "type": "string",
+            "minLength": 1
+          },
+          "format": {
+            "type": "string",
+            "enum": [
+              "png",
+              "jpeg",
+              "jpg",
+              "webp",
+              "tiff"
+            ]
+          },
+          "overwrite": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "input",
+          "output",
+          "format"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "document_docx_replace",
+      "version": "1.0.0",
+      "title": "Replace DOCX text",
+      "description": "Writes a new DOCX with exact text replacements while preserving the source document.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "minLength": 1
+          },
+          "output": {
+            "type": "string",
+            "minLength": 1
+          },
+          "overwrite": {
+            "type": "boolean"
+          },
+          "replacements": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "search": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "replace": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "search",
+                "replace"
+              ]
+            }
+          }
+        },
+        "required": [
+          "input",
+          "output",
+          "replacements"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "document_extract",
+      "version": "1.0.0",
+      "title": "extract document",
+      "description": "extracts a supported image or rich document through the isolated helper.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "document_inspect",
+      "version": "1.0.0",
+      "title": "inspect document",
+      "description": "inspects a supported image or rich document through the isolated helper.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "document_ocr",
+      "version": "1.0.0",
+      "title": "OCR document",
+      "description": "Recognizes text in an image or rendered PDF pages.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "document_render",
+      "version": "1.0.0",
+      "title": "Render document",
+      "description": "Renders every PDF page to a verified PNG image.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "minLength": 1
+          },
+          "outputDirectory": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "input",
+          "outputDirectory"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "document_validate",
+      "version": "1.0.0",
+      "title": "validate document",
+      "description": "validates a supported image or rich document through the isolated helper.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "document_xlsx_update",
+      "version": "1.0.0",
+      "title": "Update XLSX cells",
+      "description": "Writes a new XLSX with explicit A1 cell updates while preserving the source workbook.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "minLength": 1
+          },
+          "output": {
+            "type": "string",
+            "minLength": 1
+          },
+          "overwrite": {
+            "type": "boolean"
+          },
+          "updates": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "sheet": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "cell": {
+                  "type": "string",
+                  "pattern": "^[A-Z]{1,3}[1-9][0-9]*$"
+                },
+                "value": {
+                  "type": [
+                    "string",
+                    "number",
+                    "boolean",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "sheet",
+                "cell",
+                "value"
+              ]
+            }
+          }
+        },
+        "required": [
+          "input",
+          "output",
+          "updates"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "download_cancel",
+      "version": "1.0.0",
+      "title": "Download cancel",
+      "description": "cancels or inspects a download job.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "jobId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "download_resume",
+      "version": "1.0.0",
+      "title": "Download resume",
+      "description": "resumes or inspects a download job.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": true
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "jobId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "download_start",
+      "version": "1.0.0",
+      "title": "Start download",
+      "description": "Starts a bounded atomic download with optional SHA-256 verification.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": true
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "destination": {
+            "type": "string",
+            "minLength": 1
+          },
+          "expectedSha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          },
+          "overwrite": {
+            "type": "boolean"
+          },
+          "timeoutMs": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 86400000
+          },
+          "maxBytes": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "credentialReference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        },
+        "required": [
+          "url",
+          "destination"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "download_status",
+      "version": "1.0.0",
+      "title": "Download status",
+      "description": "statuss or inspects a download job.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "jobId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "download_verify",
+      "version": "1.0.0",
+      "title": "Download verify",
+      "description": "verifys or inspects a download job.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "jobId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "emergency_stop",
+      "version": "1.0.0",
+      "title": "Emergency stop",
+      "description": "Stops all new privileged actions immediately.",
+      "riskTier": 3,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "environment_snapshot",
+      "version": "1.0.0",
+      "title": "Environment snapshot",
+      "description": "Reports environment keys and redacted values.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "event_stream",
+      "version": "1.0.0",
+      "title": "Read operational events",
+      "description": "Reads an ordered cursor page of durable events owned by this client.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "filesystem_apply_patch",
+      "version": "1.0.0",
+      "title": "Apply exact text patch",
+      "description": "Atomically applies exact text edits.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "edits": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "search": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "replace": {
+                  "type": "string"
+                },
+                "expectedOccurrences": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": [
+                "search",
+                "replace"
+              ]
+            }
+          },
+          "dryRun": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "path",
+          "edits"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "filesystem_copy",
+      "version": "1.0.0",
+      "title": "Copy filesystem entry",
+      "description": "Copies without implicit overwrite.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "minLength": 1
+          },
+          "destination": {
+            "type": "string",
+            "minLength": 1
+          },
+          "recursive": {
+            "type": "boolean"
+          },
+          "overwrite": {
+            "type": "boolean"
+          },
+          "dryRun": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "source",
+          "destination"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "filesystem_hash",
+      "version": "1.0.0",
+      "title": "Hash file",
+      "description": "Computes a streaming cryptographic hash.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "algorithm": {
+            "type": "string",
+            "enum": [
+              "sha256",
+              "sha512"
+            ]
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "filesystem_links",
+      "version": "1.0.0",
+      "title": "Inspect link",
+      "description": "Reports link target and allowed-root escape state.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "filesystem_list",
+      "version": "1.0.0",
+      "title": "List directory",
+      "description": "Lists directory entries with bounded recursion.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "recursive": {
+            "type": "boolean"
+          },
+          "maxDepth": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 64
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "filesystem_move",
+      "version": "1.0.0",
+      "title": "Move filesystem entry",
+      "description": "Moves without implicit overwrite.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "minLength": 1
+          },
+          "destination": {
+            "type": "string",
+            "minLength": 1
+          },
+          "overwrite": {
+            "type": "boolean"
+          },
+          "dryRun": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "source",
+          "destination"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "filesystem_permissions",
+      "version": "1.0.0",
+      "title": "Inspect permissions",
+      "description": "Reports effective filesystem access.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "filesystem_read_range",
+      "version": "1.0.0",
+      "title": "Read file range",
+      "description": "Reads a bounded byte range.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "length": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "encoding": {
+            "type": "string",
+            "enum": [
+              "utf8",
+              "base64"
+            ]
+          }
+        },
+        "required": [
+          "path",
+          "offset",
+          "length"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "filesystem_recycle",
+      "version": "1.0.0",
+      "title": "Recycle filesystem entry",
+      "description": "Moves an entry to recoverable storage.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "dryRun": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "filesystem_remove",
+      "version": "1.0.0",
+      "title": "Permanently remove entry",
+      "description": "Permanently removes an explicitly selected entry.",
+      "riskTier": 3,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "permanent": {
+            "type": "boolean",
+            "const": true
+          },
+          "recursive": {
+            "type": "boolean"
+          },
+          "dryRun": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "path",
+          "permanent"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "filesystem_rename",
+      "version": "1.0.0",
+      "title": "Rename filesystem entry",
+      "description": "Renames within the same directory.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "newName": {
+            "type": "string",
+            "minLength": 1
+          },
+          "dryRun": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "path",
+          "newName"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "filesystem_stat",
+      "version": "1.0.0",
+      "title": "Stat filesystem entry",
+      "description": "Reports filesystem metadata.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "filesystem_write",
+      "version": "1.0.0",
+      "title": "Write file",
+      "description": "Writes using atomic replacement and explicit overwrite.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "data": {
+            "type": "string"
+          },
+          "encoding": {
+            "type": "string",
+            "enum": [
+              "utf8",
+              "base64"
+            ]
+          },
+          "overwrite": {
+            "type": "boolean"
+          },
+          "dryRun": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "path",
+          "data"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "git_add",
+      "version": "1.0.0",
+      "title": "Git add",
+      "description": "Stages only explicit literal repository-relative paths.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "root": {
+            "type": "string",
+            "minLength": 1
+          },
+          "paths": {
+            "minItems": 1,
+            "maxItems": 10000,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "dryRun": {
+            "type": "boolean"
+          },
+          "maxOutputBytes": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 67108864
+          }
+        },
+        "required": [
+          "root",
+          "paths"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "git_branches",
+      "version": "1.0.0",
+      "title": "Git branches",
+      "description": "Reads local branches and detached-HEAD state.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "root": {
+            "type": "string",
+            "minLength": 1
+          },
+          "maxOutputBytes": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 67108864
+          }
+        },
+        "required": [
+          "root"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "git_commit",
+      "version": "1.0.0",
+      "title": "Git commit",
+      "description": "Commits the existing index with an explicit message.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "root": {
+            "type": "string",
+            "minLength": 1
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 65536
+          },
+          "dryRun": {
+            "type": "boolean"
+          },
+          "maxOutputBytes": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 67108864
+          }
+        },
+        "required": [
+          "root",
+          "message"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "git_conflicts",
+      "version": "1.0.0",
+      "title": "Git conflicts",
+      "description": "Lists unresolved merge conflicts.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "root": {
+            "type": "string",
+            "minLength": 1
+          },
+          "maxOutputBytes": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 67108864
+          }
+        },
+        "required": [
+          "root"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "git_diff",
+      "version": "1.0.0",
+      "title": "Git diff",
+      "description": "Reads a bounded Git diff from an explicit repository root.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "root": {
+            "type": "string",
+            "minLength": 1
+          },
+          "staged": {
+            "type": "boolean"
+          },
+          "paths": {
+            "maxItems": 10000,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "maxOutputBytes": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 67108864
+          }
+        },
+        "required": [
+          "root"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "git_discover",
+      "version": "1.0.0",
+      "title": "Discover Git repository",
+      "description": "Discovers a repository without mutating it.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "startPath": {
+            "type": "string",
+            "minLength": 1
+          },
+          "maxOutputBytes": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 67108864
+          }
+        },
+        "required": [
+          "startPath"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "git_fetch",
+      "version": "1.0.0",
+      "title": "Git fetch",
+      "description": "Runs non-interactive Git fetch with an optional credential reference.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "root": {
+            "type": "string",
+            "minLength": 1
+          },
+          "remote": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "branch": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024
+          },
+          "dryRun": {
+            "type": "boolean"
+          },
+          "maxOutputBytes": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 67108864
+          },
+          "credentialReference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        },
+        "required": [
+          "root"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "git_log",
+      "version": "1.0.0",
+      "title": "Git log",
+      "description": "Reads bounded Git history from an explicit repository root.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "root": {
+            "type": "string",
+            "minLength": 1
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 500
+          },
+          "maxOutputBytes": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 67108864
+          }
+        },
+        "required": [
+          "root"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "git_pull",
+      "version": "1.0.0",
+      "title": "Git pull",
+      "description": "Runs non-interactive Git pull with an optional credential reference.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "root": {
+            "type": "string",
+            "minLength": 1
+          },
+          "remote": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "branch": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024
+          },
+          "dryRun": {
+            "type": "boolean"
+          },
+          "maxOutputBytes": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 67108864
+          },
+          "credentialReference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        },
+        "required": [
+          "root"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "git_push",
+      "version": "1.0.0",
+      "title": "Git push",
+      "description": "Runs non-interactive Git push with an optional credential reference.",
+      "riskTier": 3,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "root": {
+            "type": "string",
+            "minLength": 1
+          },
+          "remote": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "branch": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024
+          },
+          "dryRun": {
+            "type": "boolean"
+          },
+          "maxOutputBytes": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 67108864
+          },
+          "credentialReference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        },
+        "required": [
+          "root"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "git_status",
+      "version": "1.0.0",
+      "title": "Git status",
+      "description": "Reads porcelain Git status from an explicit repository root.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "root": {
+            "type": "string",
+            "minLength": 1
+          },
+          "maxOutputBytes": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 67108864
+          }
+        },
+        "required": [
+          "root"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "gui_capture",
+      "version": "1.0.0",
+      "title": "Capture GUI screenshot",
+      "description": "Captures a window or desktop PNG with hash and size evidence.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "window": {
+            "type": "object",
+            "properties": {
+              "handle": {
+                "type": "string",
+                "minLength": 1
+              },
+              "processId": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "title": {
+                "type": "string",
+                "maxLength": 1024
+              },
+              "titleRegex": {
+                "type": "string",
+                "maxLength": 1024
+              },
+              "className": {
+                "type": "string",
+                "maxLength": 1024
+              },
+              "modal": {
+                "type": "boolean"
+              }
+            }
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "timeoutMs": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 3600000
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "gui_click",
+      "version": "1.0.0",
+      "title": "click GUI control",
+      "description": "clicks a UI Automation control and verifies its postcondition.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "window": {
+            "type": "object",
+            "properties": {
+              "handle": {
+                "type": "string",
+                "minLength": 1
+              },
+              "processId": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "title": {
+                "type": "string",
+                "maxLength": 1024
+              },
+              "titleRegex": {
+                "type": "string",
+                "maxLength": 1024
+              },
+              "className": {
+                "type": "string",
+                "maxLength": 1024
+              },
+              "modal": {
+                "type": "boolean"
+              }
+            }
+          },
+          "target": {
+            "type": "object",
+            "properties": {
+              "runtimeId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "automationId": {
+                "type": "string",
+                "maxLength": 4096
+              },
+              "name": {
+                "type": "string",
+                "maxLength": 4096
+              },
+              "controlType": {
+                "type": "string",
+                "maxLength": 256
+              },
+              "coordinates": {
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  },
+                  "relativeTo": {
+                    "type": "string",
+                    "enum": [
+                      "window",
+                      "screen"
+                    ]
+                  }
+                },
+                "required": [
+                  "x",
+                  "y",
+                  "relativeTo"
+                ]
+              }
+            }
+          },
+          "allowCoordinateFallback": {
+            "type": "boolean"
+          },
+          "timeoutMs": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 3600000
+          }
+        },
+        "required": [
+          "window",
+          "target"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "gui_desktops",
+      "version": "1.0.0",
+      "title": "Inspect Windows desktop",
+      "description": "Reports whether the interactive Windows desktop is available.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "timeoutMs": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 3600000
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "gui_focus",
+      "version": "1.0.0",
+      "title": "Focus GUI window",
+      "description": "Focuses a window and verifies the observed foreground window.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "window": {
+            "type": "object",
+            "properties": {
+              "handle": {
+                "type": "string",
+                "minLength": 1
+              },
+              "processId": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "title": {
+                "type": "string",
+                "maxLength": 1024
+              },
+              "titleRegex": {
+                "type": "string",
+                "maxLength": 1024
+              },
+              "className": {
+                "type": "string",
+                "maxLength": 1024
+              },
+              "modal": {
+                "type": "boolean"
+              }
+            }
+          },
+          "timeoutMs": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 3600000
+          }
+        },
+        "required": [
+          "window"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "gui_inspect",
+      "version": "1.0.0",
+      "title": "Inspect GUI window",
+      "description": "Inspects UI Automation controls in an exact window.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "window": {
+            "type": "object",
+            "properties": {
+              "handle": {
+                "type": "string",
+                "minLength": 1
+              },
+              "processId": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "title": {
+                "type": "string",
+                "maxLength": 1024
+              },
+              "titleRegex": {
+                "type": "string",
+                "maxLength": 1024
+              },
+              "className": {
+                "type": "string",
+                "maxLength": 1024
+              },
+              "modal": {
+                "type": "boolean"
+              }
+            }
+          },
+          "timeoutMs": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 3600000
+          }
+        },
+        "required": [
+          "window"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "gui_invoke",
+      "version": "1.0.0",
+      "title": "invoke GUI control",
+      "description": "invokes a UI Automation control and verifies its postcondition.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "window": {
+            "type": "object",
+            "properties": {
+              "handle": {
+                "type": "string",
+                "minLength": 1
+              },
+              "processId": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "title": {
+                "type": "string",
+                "maxLength": 1024
+              },
+              "titleRegex": {
+                "type": "string",
+                "maxLength": 1024
+              },
+              "className": {
+                "type": "string",
+                "maxLength": 1024
+              },
+              "modal": {
+                "type": "boolean"
+              }
+            }
+          },
+          "target": {
+            "type": "object",
+            "properties": {
+              "runtimeId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "automationId": {
+                "type": "string",
+                "maxLength": 4096
+              },
+              "name": {
+                "type": "string",
+                "maxLength": 4096
+              },
+              "controlType": {
+                "type": "string",
+                "maxLength": 256
+              },
+              "coordinates": {
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  },
+                  "relativeTo": {
+                    "type": "string",
+                    "enum": [
+                      "window",
+                      "screen"
+                    ]
+                  }
+                },
+                "required": [
+                  "x",
+                  "y",
+                  "relativeTo"
+                ]
+              }
+            }
+          },
+          "allowCoordinateFallback": {
+            "type": "boolean"
+          },
+          "timeoutMs": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 3600000
+          }
+        },
+        "required": [
+          "window",
+          "target"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "gui_keys",
+      "version": "1.0.0",
+      "title": "Send GUI keys",
+      "description": "Sends a bounded key chord and verifies foreground focus.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "window": {
+            "type": "object",
+            "properties": {
+              "handle": {
+                "type": "string",
+                "minLength": 1
+              },
+              "processId": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "title": {
+                "type": "string",
+                "maxLength": 1024
+              },
+              "titleRegex": {
+                "type": "string",
+                "maxLength": 1024
+              },
+              "className": {
+                "type": "string",
+                "maxLength": 1024
+              },
+              "modal": {
+                "type": "boolean"
+              }
+            }
+          },
+          "keys": {
+            "minItems": 1,
+            "maxItems": 32,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            }
+          },
+          "timeoutMs": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 3600000
+          }
+        },
+        "required": [
+          "window",
+          "keys"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "gui_type",
+      "version": "1.0.0",
+      "title": "Type into GUI control",
+      "description": "Types Unicode text through UI Automation with password-field result redaction.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "window": {
+            "type": "object",
+            "properties": {
+              "handle": {
+                "type": "string",
+                "minLength": 1
+              },
+              "processId": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "title": {
+                "type": "string",
+                "maxLength": 1024
+              },
+              "titleRegex": {
+                "type": "string",
+                "maxLength": 1024
+              },
+              "className": {
+                "type": "string",
+                "maxLength": 1024
+              },
+              "modal": {
+                "type": "boolean"
+              }
+            }
+          },
+          "target": {
+            "type": "object",
+            "properties": {
+              "runtimeId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "automationId": {
+                "type": "string",
+                "maxLength": 4096
+              },
+              "name": {
+                "type": "string",
+                "maxLength": 4096
+              },
+              "controlType": {
+                "type": "string",
+                "maxLength": 256
+              },
+              "coordinates": {
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  },
+                  "relativeTo": {
+                    "type": "string",
+                    "enum": [
+                      "window",
+                      "screen"
+                    ]
+                  }
+                },
+                "required": [
+                  "x",
+                  "y",
+                  "relativeTo"
+                ]
+              }
+            }
+          },
+          "allowCoordinateFallback": {
+            "type": "boolean"
+          },
+          "timeoutMs": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 3600000
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 1048576
+          },
+          "replace": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "window",
+          "target",
+          "text"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "gui_wait",
+      "version": "1.0.0",
+      "title": "Wait for GUI state",
+      "description": "Waits for an observed UI Automation condition.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "window": {
+            "type": "object",
+            "properties": {
+              "handle": {
+                "type": "string",
+                "minLength": 1
+              },
+              "processId": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "title": {
+                "type": "string",
+                "maxLength": 1024
+              },
+              "titleRegex": {
+                "type": "string",
+                "maxLength": 1024
+              },
+              "className": {
+                "type": "string",
+                "maxLength": 1024
+              },
+              "modal": {
+                "type": "boolean"
+              }
+            }
+          },
+          "target": {
+            "type": "object",
+            "properties": {
+              "runtimeId": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 4096
+              },
+              "automationId": {
+                "type": "string",
+                "maxLength": 4096
+              },
+              "name": {
+                "type": "string",
+                "maxLength": 4096
+              },
+              "controlType": {
+                "type": "string",
+                "maxLength": 256
+              },
+              "coordinates": {
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  },
+                  "relativeTo": {
+                    "type": "string",
+                    "enum": [
+                      "window",
+                      "screen"
+                    ]
+                  }
+                },
+                "required": [
+                  "x",
+                  "y",
+                  "relativeTo"
+                ]
+              }
+            }
+          },
+          "condition": {
+            "type": "string",
+            "enum": [
+              "exists",
+              "not_exists",
+              "enabled",
+              "focused"
+            ]
+          },
+          "timeoutMs": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 3600000
+          },
+          "pollMs": {
+            "type": "integer",
+            "minimum": 5,
+            "maximum": 60000
+          }
+        },
+        "required": [
+          "window",
+          "condition"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "gui_windows",
+      "version": "1.0.0",
+      "title": "List GUI windows",
+      "description": "Lists top-level windows on the current interactive desktop.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "timeoutMs": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 3600000
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "health_report",
+      "version": "1.0.0",
+      "title": "Health report",
+      "description": "Reports truthful core and optional capability health.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "http_request",
+      "version": "1.0.0",
+      "title": "HTTP request",
+      "description": "Performs a bounded GET or HEAD request with redirect and SSRF checks.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": true
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "GET",
+              "HEAD"
+            ]
+          },
+          "encoding": {
+            "type": "string",
+            "enum": [
+              "utf8",
+              "base64"
+            ]
+          },
+          "timeoutMs": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 3600000
+          },
+          "maxResponseBytes": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 67108864
+          },
+          "maxRedirects": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 20
+          },
+          "headers": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string",
+              "minLength": 1
+            },
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 16384
+            }
+          },
+          "credentialReference": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
+        },
+        "required": [
+          "url"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "job_cancel",
+      "version": "1.0.0",
+      "title": "cancel durable job",
+      "description": "cancels an owned durable job.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "jobId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "job_events",
+      "version": "1.0.0",
+      "title": "Read job events",
+      "description": "Reads an ordered page of durable job events.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "cursor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000
+          }
+        },
+        "required": [
+          "jobId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "job_get",
+      "version": "1.0.0",
+      "title": "Get durable job",
+      "description": "Reads current durable job state and verification.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "jobId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "job_list",
+      "version": "1.0.0",
+      "title": "List durable jobs",
+      "description": "Lists durable jobs owned by this client.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "job_logs",
+      "version": "1.0.0",
+      "title": "Read job logs",
+      "description": "Reads an ordered redacted page of durable job logs.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "cursor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000
+          }
+        },
+        "required": [
+          "jobId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "job_pause",
+      "version": "1.0.0",
+      "title": "pause durable job",
+      "description": "pauses an owned durable job.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "jobId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "job_resume",
+      "version": "1.0.0",
+      "title": "resume durable job",
+      "description": "resumes an owned durable job.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "jobId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "job_retry",
+      "version": "1.0.0",
+      "title": "retry durable job",
+      "description": "retrys an owned durable job.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "jobId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "job_submit",
+      "version": "1.0.0",
+      "title": "Submit durable job",
+      "description": "Queues a restart-safe background job and returns immediately.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "minLength": 1
+          },
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "minLength": 1
+          },
+          "retryPolicy": {
+            "type": "object",
+            "properties": {
+              "maxAttempts": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100
+              }
+            },
+            "required": [
+              "maxAttempts"
+            ]
+          },
+          "steps": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "stepId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "kind": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "payload": {},
+                "dependsOn": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "idempotent": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "stepId",
+                "kind",
+                "payload",
+                "dependsOn",
+                "idempotent"
+              ]
+            }
+          }
+        },
+        "required": [
+          "kind",
+          "steps"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "list_trusted_clients",
+      "version": "1.0.0",
+      "title": "List trusted clients",
+      "description": "Lists persistent trusted grants.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "lock_acquire",
+      "version": "1.0.0",
+      "title": "Acquire resource locks",
+      "description": "Atomically acquires canonically ordered leased resources with fencing tokens.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "resources": {
+            "minItems": 1,
+            "maxItems": 10000,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "leaseMs": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 86400000
+          }
+        },
+        "required": [
+          "resources"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "lock_list",
+      "version": "1.0.0",
+      "title": "List resource locks",
+      "description": "Lists active resource leases owned by this client.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "lock_reconcile",
+      "version": "1.0.0",
+      "title": "Reconcile expired locks",
+      "description": "Releases only resource leases whose persisted expiration has passed.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "lock_release",
+      "version": "1.0.0",
+      "title": "Release resource locks",
+      "description": "Releases every resource in an owned lease atomically.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "leaseId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "leaseId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "lock_renew",
+      "version": "1.0.0",
+      "title": "Renew resource locks",
+      "description": "Renews an owned resource lease without changing fencing tokens.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "leaseId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "leaseMs": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 86400000
+          }
+        },
+        "required": [
+          "leaseId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "media_concat",
+      "version": "1.0.0",
+      "title": "Concatenate media",
+      "description": "Concatenates compatible media inputs and verifies the combined duration.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "inputs": {
+            "minItems": 1,
+            "maxItems": 1000,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "output": {
+            "type": "string",
+            "minLength": 1
+          },
+          "overwrite": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "inputs",
+          "output"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "media_extract_audio",
+      "version": "1.0.0",
+      "title": "Extract media audio",
+      "description": "Copies the first audio stream to a verified standalone output.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "minLength": 1
+          },
+          "output": {
+            "type": "string",
+            "minLength": 1
+          },
+          "overwrite": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "input",
+          "output"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "media_extract_frames",
+      "version": "1.0.0",
+      "title": "Extract media frames",
+      "description": "Extracts lossless PNG frames at explicit timestamps.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "minLength": 1
+          },
+          "outputDirectory": {
+            "type": "string",
+            "minLength": 1
+          },
+          "timestampsSeconds": {
+            "minItems": 1,
+            "maxItems": 10000,
+            "type": "array",
+            "items": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        },
+        "required": [
+          "input",
+          "outputDirectory",
+          "timestampsSeconds"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "media_probe",
+      "version": "1.0.0",
+      "title": "Probe media",
+      "description": "Reads stream, duration, rotation, color, audio, and format metadata with ffprobe.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "media_remove_metadata",
+      "version": "1.0.0",
+      "title": "Remove media metadata",
+      "description": "Copies media streams while removing global metadata and chapters.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "minLength": 1
+          },
+          "output": {
+            "type": "string",
+            "minLength": 1
+          },
+          "overwrite": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "input",
+          "output"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "media_remux",
+      "version": "1.0.0",
+      "title": "Remux media",
+      "description": "Copies all compatible streams into a new container and verifies the output.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "minLength": 1
+          },
+          "output": {
+            "type": "string",
+            "minLength": 1
+          },
+          "overwrite": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "input",
+          "output"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "media_transcode",
+      "version": "1.0.0",
+      "title": "Transcode media",
+      "description": "Transcodes media with explicit codecs and verifies the output before atomic publication.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "minLength": 1
+          },
+          "output": {
+            "type": "string",
+            "minLength": 1
+          },
+          "overwrite": {
+            "type": "boolean"
+          },
+          "videoCodec": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "audioCodec": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "videoBitrate": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32
+          },
+          "audioBitrate": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 32
+          }
+        },
+        "required": [
+          "input",
+          "output"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "media_trim",
+      "version": "1.0.0",
+      "title": "Trim media",
+      "description": "Creates an exact re-encoded time range and verifies its duration.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "input": {
+            "type": "string",
+            "minLength": 1
+          },
+          "output": {
+            "type": "string",
+            "minLength": 1
+          },
+          "overwrite": {
+            "type": "boolean"
+          },
+          "startSeconds": {
+            "type": "number",
+            "minimum": 0
+          },
+          "durationSeconds": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        },
+        "required": [
+          "input",
+          "output",
+          "durationSeconds"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "media_verify",
+      "version": "1.0.0",
+      "title": "Verify media",
+      "description": "Checks media duration, stream counts, codecs, and absent metadata against expectations.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "expectation": {
+            "type": "object",
+            "properties": {
+              "durationSeconds": {
+                "type": "number",
+                "minimum": 0
+              },
+              "durationToleranceSeconds": {
+                "type": "number",
+                "minimum": 0
+              },
+              "videoStreams": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "audioStreams": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "codecs": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "metadataAbsent": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        },
+        "required": [
+          "path"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "notification_acknowledge",
+      "version": "1.0.0",
+      "title": "Acknowledge notification",
+      "description": "Acknowledges an owned durable notification.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "notificationId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "notificationId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "notification_inbox",
+      "version": "1.0.0",
+      "title": "Read notification inbox",
+      "description": "Lists durable notifications owned by this client.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "notification_retry_due",
+      "version": "1.0.0",
+      "title": "Retry notifications",
+      "description": "Retries due pending notification deliveries.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "notification_send",
+      "version": "1.0.0",
+      "title": "Send notification",
+      "description": "Queues and delivers a durable notification with retry state.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "mcp",
+              "local"
+            ]
+          },
+          "payload": {},
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "kind",
+          "payload"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "operational_state_delete",
+      "version": "1.0.0",
+      "title": "Delete operational state",
+      "description": "Deletes one namespaced runtime state record.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        },
+        "required": [
+          "workspaceId",
+          "key"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "operational_state_get",
+      "version": "1.0.0",
+      "title": "Get operational state",
+      "description": "Reads one namespaced runtime state record.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        },
+        "required": [
+          "workspaceId",
+          "key"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "operational_state_list",
+      "version": "1.0.0",
+      "title": "List operational state",
+      "description": "Lists namespaced runtime state records.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          }
+        },
+        "required": [
+          "workspaceId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "operational_state_set",
+      "version": "1.0.0",
+      "title": "Set operational state",
+      "description": "Stores namespaced runtime state; project knowledge remains in project files.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "key": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "value": {}
+        },
+        "required": [
+          "workspaceId",
+          "key",
+          "value"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "port_listeners",
+      "version": "1.0.0",
+      "title": "List port listeners",
+      "description": "Lists TCP and UDP listeners with owning PIDs.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "port_resolve",
+      "version": "1.0.0",
+      "title": "Resolve port owner",
+      "description": "Resolves a local port to owning processes.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "port": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535
+          },
+          "protocol": {
+            "type": "string",
+            "enum": [
+              "tcp",
+              "udp"
+            ]
+          }
+        },
+        "required": [
+          "port"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "process_inspect",
+      "version": "1.0.0",
+      "title": "Inspect process",
+      "description": "Inspects one Windows process and its creation identity.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "pid": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "pid"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "process_list",
+      "version": "1.0.0",
+      "title": "List processes",
+      "description": "Lists Windows processes with redacted command lines.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "process_start",
+      "version": "1.0.0",
+      "title": "Start process",
+      "description": "Starts a controlled non-interactive process.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string",
+            "minLength": 1
+          },
+          "args": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "cwd": {
+            "type": "string",
+            "minLength": 1
+          },
+          "env": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "process_terminate_tree",
+      "version": "1.0.0",
+      "title": "Terminate process tree",
+      "description": "Terminates an exact creation-bound process tree.",
+      "riskTier": 3,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "identity": {
+            "type": "object",
+            "properties": {
+              "pid": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+              }
+            },
+            "required": [
+              "pid",
+              "createdAt"
+            ]
+          },
+          "force": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "identity"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "process_wait",
+      "version": "1.0.0",
+      "title": "Wait for process",
+      "description": "Waits for an exact process identity to exit.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "identity": {
+            "type": "object",
+            "properties": {
+              "pid": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+              }
+            },
+            "required": [
+              "pid",
+              "createdAt"
+            ]
+          },
+          "timeoutMs": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3600000
+          }
+        },
+        "required": [
+          "identity",
+          "timeoutMs"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "project_checkpoint_discover",
+      "version": "1.0.0",
+      "title": "Discover project checkpoint",
+      "description": "Finds project-owned WORK_CHECKPOINT.md references without copying their contents.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "root": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "root"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "project_checkpoint_read",
+      "version": "1.0.0",
+      "title": "Read project checkpoint",
+      "description": "Reads a project-owned checkpoint directly from its project.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "root": {
+            "type": "string",
+            "minLength": 1
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "root"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "project_checkpoint_update",
+      "version": "1.0.0",
+      "title": "Update project checkpoint",
+      "description": "Atomically updates a project-owned checkpoint and records only its path and hash as an artifact reference.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "root": {
+            "type": "string",
+            "minLength": 1
+          },
+          "path": {
+            "type": "string",
+            "minLength": 1
+          },
+          "content": {
+            "type": "string",
+            "maxLength": 4194304
+          },
+          "expectedSha256": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "required": [
+          "workspaceId",
+          "root",
+          "content"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "project_discover_guidance",
+      "version": "1.0.0",
+      "title": "Discover project guidance",
+      "description": "Finds project-owned guidance references without copying their contents into MCP state.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "root": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "root"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "request_full_access",
+      "version": "1.0.0",
+      "title": "Request Full Access",
+      "description": "Creates a pending Full Access enrollment request.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "scopes": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "required": [
+          "scopes"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "revoke_full_access",
+      "version": "1.0.0",
+      "title": "Revoke Full Access",
+      "description": "Revokes a persistent trusted grant.",
+      "riskTier": 3,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "grantId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "grantId",
+          "reason"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "runtime_checkpoint_complete",
+      "version": "1.0.0",
+      "title": "Complete runtime checkpoint",
+      "description": "Marks an owned runtime checkpoint complete with verification evidence.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "checkpointId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "verification": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "workspaceId",
+          "checkpointId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "runtime_checkpoint_list",
+      "version": "1.0.0",
+      "title": "List runtime checkpoints",
+      "description": "Lists owned runtime checkpoint summaries.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "includeCompleted": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "workspaceId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "runtime_checkpoint_load",
+      "version": "1.0.0",
+      "title": "Load runtime checkpoint",
+      "description": "Loads resumable execution state from one owned workspace.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "checkpointId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "workspaceId",
+          "checkpointId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "runtime_checkpoint_save",
+      "version": "1.0.0",
+      "title": "Save runtime checkpoint",
+      "description": "Persists resumable execution state, not project status or project memory.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "checkpointId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "operation": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "state": {},
+          "verification": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "workspaceId",
+          "operation",
+          "state"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "schedule_create",
+      "version": "1.0.0",
+      "title": "Create schedule",
+      "description": "Creates a persistent timezone-aware action schedule bound to the current grant.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "timezone": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rule": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "at"
+                  },
+                  "at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "at"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "interval"
+                  },
+                  "everyMs": {
+                    "type": "integer",
+                    "minimum": 1000,
+                    "maximum": 9007199254740991
+                  },
+                  "startAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "everyMs"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "daily"
+                  },
+                  "time": {
+                    "type": "string",
+                    "pattern": "^\\d{2}:\\d{2}$"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "time"
+                ]
+              }
+            ]
+          },
+          "action": {
+            "type": "object",
+            "properties": {
+              "tool": {
+                "type": "string",
+                "minLength": 1
+              },
+              "arguments": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {}
+              }
+            },
+            "required": [
+              "tool",
+              "arguments"
+            ]
+          },
+          "misfirePolicy": {
+            "type": "string",
+            "enum": [
+              "skip",
+              "run_once",
+              "catch_up"
+            ]
+          },
+          "overlapPolicy": {
+            "type": "string",
+            "enum": [
+              "skip",
+              "allow"
+            ]
+          },
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "timezone",
+          "rule",
+          "action",
+          "misfirePolicy",
+          "overlapPolicy"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "schedule_delete",
+      "version": "1.0.0",
+      "title": "delete schedule",
+      "description": "deletes an owned schedule.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "scheduleId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "scheduleId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "schedule_list",
+      "version": "1.0.0",
+      "title": "List schedules",
+      "description": "Lists active and paused schedules owned by this client.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "schedule_pause",
+      "version": "1.0.0",
+      "title": "pause schedule",
+      "description": "pauses an owned schedule.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "scheduleId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "scheduleId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "schedule_resume",
+      "version": "1.0.0",
+      "title": "resume schedule",
+      "description": "resumes an owned schedule.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "scheduleId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "scheduleId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "schedule_run_due",
+      "version": "1.0.0",
+      "title": "Run due schedules",
+      "description": "Runs due schedules after rechecking their persistent grants.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "schedule_runs",
+      "version": "1.0.0",
+      "title": "List schedule runs",
+      "description": "Lists durable run history for an owned schedule.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "scheduleId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "scheduleId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "schedule_update",
+      "version": "1.0.0",
+      "title": "Update schedule",
+      "description": "Updates an owned schedule and recalculates its next wall-clock occurrence.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "scheduleId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "timezone": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rule": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "at"
+                  },
+                  "at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "at"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "interval"
+                  },
+                  "everyMs": {
+                    "type": "integer",
+                    "minimum": 1000,
+                    "maximum": 9007199254740991
+                  },
+                  "startAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "everyMs"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "kind": {
+                    "type": "string",
+                    "const": "daily"
+                  },
+                  "time": {
+                    "type": "string",
+                    "pattern": "^\\d{2}:\\d{2}$"
+                  }
+                },
+                "required": [
+                  "kind",
+                  "time"
+                ]
+              }
+            ]
+          },
+          "action": {
+            "type": "object",
+            "properties": {
+              "tool": {
+                "type": "string",
+                "minLength": 1
+              },
+              "arguments": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {}
+              }
+            },
+            "required": [
+              "tool",
+              "arguments"
+            ]
+          },
+          "misfirePolicy": {
+            "type": "string",
+            "enum": [
+              "skip",
+              "run_once",
+              "catch_up"
+            ]
+          },
+          "overlapPolicy": {
+            "type": "string",
+            "enum": [
+              "skip",
+              "allow"
+            ]
+          }
+        },
+        "required": [
+          "scheduleId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "search_cancel",
+      "version": "1.0.0",
+      "title": "Cancel search",
+      "description": "Cancels an active durable search.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "searchId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "searchId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "search_page",
+      "version": "1.0.0",
+      "title": "Page search results",
+      "description": "Reads one deterministic page of stored results.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "searchId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "cursor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000
+          }
+        },
+        "required": [
+          "searchId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "search_resume",
+      "version": "1.0.0",
+      "title": "Resume search",
+      "description": "Restarts a cancelled or failed durable search.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "searchId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "searchId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "search_start",
+      "version": "1.0.0",
+      "title": "Start search",
+      "description": "Starts a bounded durable filesystem search.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "roots": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "name": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "regex": {
+            "type": "boolean"
+          },
+          "caseSensitive": {
+            "type": "boolean"
+          },
+          "minSize": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "maxSize": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "modifiedAfter": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          },
+          "modifiedBefore": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          },
+          "types": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "file",
+                "archive_member"
+              ]
+            }
+          },
+          "include": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "exclude": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "archives": {
+            "type": "boolean"
+          },
+          "documents": {
+            "type": "boolean"
+          },
+          "ocr": {
+            "type": "boolean"
+          },
+          "maxFiles": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "maxResults": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "maxBytes": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "roots",
+          "maxFiles",
+          "maxResults",
+          "maxBytes"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "search_status",
+      "version": "1.0.0",
+      "title": "Search status",
+      "description": "Reports durable search progress and limits.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "searchId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "searchId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "server_info",
+      "version": "1.0.0",
+      "title": "Server information",
+      "description": "Reports this MCP server and device identity.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "service_inspect",
+      "version": "1.0.0",
+      "title": "Inspect Windows service",
+      "description": "Inspects one Windows service.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "service_list",
+      "version": "1.0.0",
+      "title": "List Windows services",
+      "description": "Lists Windows service state.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "service_restart",
+      "version": "1.0.0",
+      "title": "restart Windows service",
+      "description": "restarts a Windows service through the configured privilege boundary.",
+      "riskTier": 3,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "service_start",
+      "version": "1.0.0",
+      "title": "start Windows service",
+      "description": "starts a Windows service through the configured privilege boundary.",
+      "riskTier": 3,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "service_stop",
+      "version": "1.0.0",
+      "title": "stop Windows service",
+      "description": "stops a Windows service through the configured privilege boundary.",
+      "riskTier": 3,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "system_capabilities",
+      "version": "1.0.0",
+      "title": "System capabilities",
+      "description": "Reports detected local tool capabilities.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "system_snapshot",
+      "version": "1.0.0",
+      "title": "System snapshot",
+      "description": "Reports operating system and runtime identity.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "terminal_close",
+      "version": "1.0.0",
+      "title": "Close terminal",
+      "description": "Terminates a terminal process tree and closes its session.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "terminalId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "terminalId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "terminal_create",
+      "version": "1.0.0",
+      "title": "Create terminal",
+      "description": "Creates an interactive Windows ConPTY session.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "shell": {
+            "type": "string",
+            "enum": [
+              "powershell",
+              "cmd",
+              "python",
+              "node"
+            ]
+          },
+          "cwd": {
+            "type": "string",
+            "minLength": 1
+          },
+          "cols": {
+            "type": "integer",
+            "minimum": 2,
+            "maximum": 500
+          },
+          "rows": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 300
+          }
+        },
+        "required": [
+          "shell",
+          "cwd"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "terminal_promote_to_job",
+      "version": "1.0.0",
+      "title": "Promote terminal to job",
+      "description": "Returns durable-job promotion metadata.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "terminalId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "terminalId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "terminal_read",
+      "version": "1.0.0",
+      "title": "Read terminal output",
+      "description": "Reads output using monotonic byte offsets.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "terminalId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "offset": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1048576
+          }
+        },
+        "required": [
+          "terminalId",
+          "offset",
+          "limit"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "terminal_resize",
+      "version": "1.0.0",
+      "title": "Resize terminal",
+      "description": "Resizes an interactive terminal viewport.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "terminalId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "cols": {
+            "type": "integer",
+            "minimum": 2,
+            "maximum": 500
+          },
+          "rows": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 300
+          }
+        },
+        "required": [
+          "terminalId",
+          "cols",
+          "rows"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "terminal_send",
+      "version": "1.0.0",
+      "title": "Send terminal input",
+      "description": "Writes exact text to terminal stdin.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "terminalId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "data": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "terminalId",
+          "data"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "terminal_send_control",
+      "version": "1.0.0",
+      "title": "Send terminal control key",
+      "description": "Sends Ctrl+C, Ctrl+Break, or EOF.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "terminalId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "control": {
+            "type": "string",
+            "enum": [
+              "ctrl_c",
+              "ctrl_break",
+              "eof"
+            ]
+          }
+        },
+        "required": [
+          "terminalId",
+          "control"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "terminal_status",
+      "version": "1.0.0",
+      "title": "Terminal status",
+      "description": "Reports interactive terminal lifecycle state.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "terminalId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "terminalId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "transaction_begin",
+      "version": "1.0.0",
+      "title": "Begin transaction",
+      "description": "Creates a persisted staged change set without mutating targets.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "changes": {
+            "minItems": 1,
+            "maxItems": 10000,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "changeId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 256
+                },
+                "kind": {
+                  "type": "string",
+                  "const": "file.replace"
+                },
+                "target": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "payload": {
+                  "type": "object",
+                  "properties": {
+                    "content": {
+                      "type": "string"
+                    },
+                    "encoding": {
+                      "type": "string",
+                      "enum": [
+                        "utf8",
+                        "base64"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "content"
+                  ]
+                }
+              },
+              "required": [
+                "changeId",
+                "kind",
+                "target",
+                "payload"
+              ]
+            }
+          }
+        },
+        "required": [
+          "changes"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "transaction_commit",
+      "version": "1.0.0",
+      "title": "Commit transaction",
+      "description": "Applies, verifies, and automatically compensates a persisted change set on failure.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "transactionId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "previewEvidence": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$"
+          }
+        },
+        "required": [
+          "transactionId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "transaction_preview",
+      "version": "1.0.0",
+      "title": "Preview transaction",
+      "description": "Prepares recovery points and returns explicit evidence without mutating targets.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "transactionId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "transactionId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "transaction_reconcile",
+      "version": "1.0.0",
+      "title": "Recover interrupted transactions",
+      "description": "Rolls back interrupted transactions from persisted recovery points.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "transaction_rollback",
+      "version": "1.0.0",
+      "title": "Roll back transaction",
+      "description": "Compensates prepared or applied changes in reverse order from persisted recovery points.",
+      "riskTier": 2,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "transactionId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "transactionId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "transaction_status",
+      "version": "1.0.0",
+      "title": "Get transaction status",
+      "description": "Reads an owned transaction and its per-change state.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "transactionId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "transactionId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "watch_cancel",
+      "version": "1.0.0",
+      "title": "cancel watch",
+      "description": "cancels an owned persistent watch.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "watchId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "watchId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "watch_create",
+      "version": "1.0.0",
+      "title": "Create persistent watch",
+      "description": "Creates a restart-safe file, directory, process, port, job, log, or URL watch.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": true
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "file",
+              "directory",
+              "process",
+              "port",
+              "job",
+              "log",
+              "url"
+            ]
+          },
+          "target": {
+            "type": "string",
+            "minLength": 1
+          },
+          "workspaceId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "intervalMs": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 86400000
+          },
+          "specification": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "kind",
+          "target"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "watch_events",
+      "version": "1.0.0",
+      "title": "Read watch events",
+      "description": "Reads an ordered cursor page of durable watch events.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "watchId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "cursor": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "limit": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000
+          }
+        },
+        "required": [
+          "watchId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "watch_list",
+      "version": "1.0.0",
+      "title": "List persistent watches",
+      "description": "Lists watches owned by this client.",
+      "riskTier": 0,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "watch_pause",
+      "version": "1.0.0",
+      "title": "pause watch",
+      "description": "pauses an owned persistent watch.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "watchId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "watchId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "watch_resume",
+      "version": "1.0.0",
+      "title": "resume watch",
+      "description": "resumes an owned persistent watch.",
+      "riskTier": 1,
+      "requiredScope": "computer:*",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "openWorldHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "watchId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "watchId"
+        ],
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    }
+  ]
+}

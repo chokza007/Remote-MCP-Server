@@ -237,6 +237,14 @@ describe("verified Windows GUI automation", () => {
     ]);
   });
 
+  test("keeps the visible GUI fixture fully dark, including its custom title bar", async () => {
+    const source = await readFile(resolve("tests/fixtures/gui-app/RemoteMcp.GuiFixture.ps1"), "utf8");
+    expect(source).toContain('WindowStyle="None"');
+    expect(source).toContain('Background="#090D14"');
+    expect(source).toContain('Background="#111823"');
+    expect(source).not.toMatch(/Background\s*=\s*"(?:White|#FFF(?:FFF)?)"/iu);
+  });
+
   test.runIf(process.platform === "win32")("drives the disposable WinForms fixture by automation identity", async () => {
     const child = spawn("powershell.exe", [
       "-NoLogo", "-NoProfile", "-Sta", "-ExecutionPolicy", "Bypass", "-File",

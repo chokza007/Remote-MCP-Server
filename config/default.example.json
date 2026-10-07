@@ -3,5 +3,5 @@
   "port": 7331,
   "endpoint": "/mcp",
   "maxSessions": 1000,
-  "maxRequestBodyBytes": 1048576
+  "maxRequestBodyBytes": 4194304
 }
