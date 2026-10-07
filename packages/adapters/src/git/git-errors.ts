@@ -23,14 +23,20 @@ export function redactGitOutput(value: string): string {
     .replace(sensitiveAssignment, "$1=[REDACTED]");
 }
 
-export class GitAdapterError extends Error {
+export class GitAdapterError extends RemoteMcpError {
   public readonly code: GitErrorCode;
   public readonly operation: string;
   public readonly exitCode?: number | null;
   public readonly stderr?: string;
 
   public constructor(options: GitAdapterErrorOptions) {
-    super(redactGitOutput(options.message));
+    super({
+      errorCode: options.code,
+      message: redactGitOutput(options.message),
+      retryable: options.code === "COMMAND_FAILED",
+      suggestedAction: "Inspect the explicit repository root, Git state, non-interactive credentials, and bounded output before retrying.",
+      target: options.operation
+    });
     this.name = "GitAdapterError";
     this.code = options.code;
     this.operation = options.operation;
@@ -53,3 +59,5 @@ export class GitAdapterError extends Error {
 export function gitAbortError(operation: string): DOMException {
   return new DOMException(`Git operation was cancelled: ${operation}`, "AbortError");
 }
+import { RemoteMcpError } from "@remote-mcp/contracts";
+

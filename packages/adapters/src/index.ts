@@ -104,3 +104,57 @@ export {
   requireExactRepositoryRoot,
   type RepositoryDiscoveryResult
 } from "./git/repository-discovery.js";
+export {
+  createUrlPolicy,
+  DefaultUrlPolicy,
+  isPrivateAddress,
+  NetworkError,
+  redactNetworkText,
+  type AllowedUrl,
+  type NetworkErrorCode,
+  type ResolvedAddress,
+  type UrlPolicy,
+  type UrlPolicyOptions
+} from "./network/url-policy.js";
+export {
+  createHttpService,
+  NodeHttpService,
+  type HttpCredentialProvider,
+  type HttpRequestInput,
+  type HttpResponseResult,
+  type HttpService,
+  type HttpServiceOptions
+} from "./network/http-client.js";
+export {
+  createDownloadService,
+  InMemoryDownloadService,
+  type DownloadInput,
+  type DownloadService,
+  type DownloadServiceOptions,
+  type DownloadState,
+  type DownloadStatus,
+  type DownloadVerification
+} from "./network/download-service.js";
+export {
+  createExtractionPolicy,
+  DefaultExtractionPolicy,
+  ArchiveError,
+  assertArchiveTarget,
+  type ArchiveErrorCode,
+  type ArchivePolicyOptions,
+  type ExtractionPolicy,
+  type RawArchiveEntry,
+  type ValidatedArchiveEntry
+} from "./archive/extraction-policy.js";
+export {
+  createArchiveService,
+  ZipArchiveService,
+  type ArchiveCreateEntry,
+  type ArchiveCreateInput,
+  type ArchiveEntry,
+  type ArchiveExtractInput,
+  type ArchiveMutationResult,
+  type ArchiveService,
+  type ArchiveServiceOptions,
+  type ArchiveVerification
+} from "./archive/archive-service.js";

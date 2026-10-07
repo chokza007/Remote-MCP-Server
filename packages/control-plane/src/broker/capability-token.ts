@@ -296,11 +296,11 @@ export interface NonceStore {
   consume(nonce: string, expiresAt: string): boolean;
 }
 
-export function createNonceStore(): NonceStore {
+export function createNonceStore(options: { readonly now?: () => Date } = {}): NonceStore {
   const consumed = new Map<string, number>();
   return {
     consume: (nonce, expiresAt) => {
-      const now = Date.now();
+      const now = (options.now ?? (() => new Date()))().getTime();
       for (const [key, expiry] of consumed) if (expiry <= now) consumed.delete(key);
       if (consumed.has(nonce)) return false;
       consumed.set(nonce, Date.parse(expiresAt));

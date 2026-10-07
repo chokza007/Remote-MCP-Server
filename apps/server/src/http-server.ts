@@ -7,10 +7,15 @@ import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import type { Request, Response } from "express";
 
+import { asClientId, asDeviceId, asPrincipalId } from "@remote-mcp/contracts";
+
 import {
   createFilesystemAdapter,
   createEnvironmentService,
+  createArchiveService,
+  createDownloadService,
   createGitAdapter,
+  createHttpService,
   createPortService,
   createProcessService,
   createSearchService,
@@ -18,8 +23,11 @@ import {
   createTerminalService,
   createWindowsServiceService,
   type EnvironmentService,
+  type ArchiveService,
+  type DownloadService,
   type FilesystemAdapter,
   type GitAdapter,
+  type HttpService,
   type PortService,
   type ProcessService,
   type SearchService,
@@ -46,10 +54,12 @@ import { identityFromRequest, sameStableIdentity } from "./context.js";
 import { createMcpServer } from "./create-mcp-server.js";
 import { ToolRegistry } from "./tool-registry.js";
 import { registerAuthorizationTools } from "./tools/authorization.js";
+import { registerArchiveTools } from "./tools/archives.js";
 import { registerFilesystemTools } from "./tools/filesystem.js";
 import { registerGitTools } from "./tools/git.js";
 import { registerHealthTool } from "./tools/health.js";
 import { registerJobTools } from "./tools/jobs.js";
+import { registerNetworkTools } from "./tools/network.js";
 import { registerSearchTools } from "./tools/search.js";
 import { registerSystemTools } from "./tools/system.js";
 import { registerTerminalTools } from "./tools/terminal.js";
@@ -60,6 +70,9 @@ export interface CreateHttpServerOptions extends Partial<ServerConfig> {
   readonly protector?: SecretProtector;
   readonly localDevelopmentToken?: string;
   readonly filesystem?: FilesystemAdapter;
+  readonly archives?: ArchiveService;
+  readonly http?: HttpService;
+  readonly downloads?: DownloadService;
   readonly git?: GitAdapter;
   readonly search?: SearchService;
   readonly terminal?: TerminalService;
@@ -118,13 +131,31 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
   const redactor = createRedactor();
   const audit = createAuditService({ database: options.database, redactor });
   const registry = new ToolRegistry();
+  const http = options.http ?? createHttpService();
   registerAuthorizationTools(registry, { grants, emergencyStop });
+  registerArchiveTools(registry, options.archives ?? createArchiveService());
   registerFilesystemTools(registry, options.filesystem ?? createFilesystemAdapter());
   registerGitTools(registry, options.git ?? createGitAdapter());
   registerHealthTool(registry, options.database);
   registerJobTools(registry, {
     jobs: options.jobs ?? createJobService({ database: options.database }),
     grants
+  });
+  registerNetworkTools(registry, {
+    http,
+    downloads: options.downloads ?? createDownloadService({
+      http,
+      database: options.database,
+      authorizeResume: (namespace) => {
+        const separator = namespace.indexOf("\0");
+        if (separator < 1) return false;
+        return grants.resolve({
+          principalId: asPrincipalId(namespace.slice(0, separator)),
+          clientId: asClientId(namespace.slice(separator + 1)),
+          deviceId: asDeviceId(grants.serverIdentity().deviceId)
+        }).state === "granted";
+      }
+    })
   });
   registerSearchTools(registry, options.search ?? createSearchService({ database: options.database }));
   registerTerminalTools(

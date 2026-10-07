@@ -19,6 +19,7 @@ export class Redactor {
     return this.#fingerprints
       .redact(value)
       .replace(/(https?:\/\/)[^\/\s:@]+:[^\/\s@]+@/giu, "$1[REDACTED]@")
+      .replace(/([?&](?:access[-_]?token|api[-_]?key|key|password|secret|signature|sig|token)=)[^&#\s]+/giu, "$1[REDACTED]")
       .replace(/(\bBearer\s+)[A-Za-z0-9._~+/=-]+/giu, "$1[REDACTED]")
       .replace(
         /\b([A-Z0-9_]*(?:KEY|TOKEN|SECRET|PASSWORD))=([^\s\r\n]+)/gu,

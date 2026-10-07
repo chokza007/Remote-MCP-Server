@@ -72,7 +72,7 @@ describe("privileged broker protocol", () => {
         payloadHash: expect.stringMatching(/^sha256:[a-f0-9]{64}$/u)
       });
       const snapshot = state.capabilities.authorizationSnapshot();
-      const nonceStore = createNonceStore();
+      const nonceStore = createNonceStore({ now: () => state.now.value });
       expect(
         verifyPrivilegedRequest(
           { action: "service.restart", targets: ["service://RemoteMcpFixture"], payload, capability },

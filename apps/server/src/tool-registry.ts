@@ -16,12 +16,16 @@ export interface RegisteredGatewayTool {
   readonly handler: ToolHandler;
   readonly public: boolean;
   readonly bypassEmergencyStop: boolean;
+  readonly openWorld: boolean;
+  readonly auditResult: (output: ToolOutput) => unknown;
 }
 
 export interface ToolRegistrationOptions {
   readonly inputSchema?: ZodRawShape;
   readonly public?: boolean;
   readonly bypassEmergencyStop?: boolean;
+  readonly openWorld?: boolean;
+  readonly auditResult?: (output: ToolOutput) => unknown;
 }
 
 export class ToolRegistry {
@@ -41,7 +45,9 @@ export class ToolRegistry {
       inputSchema: options.inputSchema ?? {},
       handler,
       public: options.public ?? false,
-      bypassEmergencyStop: options.bypassEmergencyStop ?? false
+      bypassEmergencyStop: options.bypassEmergencyStop ?? false,
+      openWorld: options.openWorld ?? false,
+      auditResult: options.auditResult ?? ((output) => output)
     });
   }
 

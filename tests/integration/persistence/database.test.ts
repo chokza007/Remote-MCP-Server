@@ -45,6 +45,7 @@ const requiredTables = [
   "clients",
   "credential_refs",
   "devices",
+  "download_jobs",
   "grant_events",
   "grant_scopes",
   "job_events",
@@ -119,8 +120,8 @@ describe("operational database", () => {
       5_000
     );
 
-    expect(persistence.migrateDatabase(database)).toEqual({ applied: 2, currentVersion: 2 });
-    expect(persistence.migrateDatabase(database)).toEqual({ applied: 0, currentVersion: 2 });
+    expect(persistence.migrateDatabase(database)).toEqual({ applied: 3, currentVersion: 3 });
+    expect(persistence.migrateDatabase(database)).toEqual({ applied: 0, currentVersion: 3 });
 
     const tables = database.read((connection) =>
       connection
