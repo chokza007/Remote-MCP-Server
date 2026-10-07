@@ -6,9 +6,9 @@ import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import { createMcpExpressApp } from "@modelcontextprotocol/sdk/server/express.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
-import type { Request, Response } from "express";
+import { urlencoded, type Request, type Response } from "express";
 
-import { asClientId, asDeviceId, asPrincipalId } from "@remote-mcp/contracts";
+import { asClientId, asDeviceId, asPrincipalId, asSessionId } from "@remote-mcp/contracts";
 
 import {
   createFilesystemAdapter,
@@ -88,6 +88,10 @@ import {
 } from "@remote-mcp/runtime";
 
 import { resolveServerConfig, type ServerConfig } from "./config.js";
+import { ClientRegistry } from "./auth/client-registry.js";
+import { LocalOAuthProvider, type OAuthProvider } from "./auth/oauth-provider.js";
+import { OwnerConsentService } from "./auth/owner-consent.js";
+import { TokenValidator, type OAuthSigningKey } from "./auth/token-validator.js";
 import { createToolContext, identityFromRequest, sameStableIdentity } from "./context.js";
 import { createMcpServer, inferTargets } from "./create-mcp-server.js";
 import { ToolRegistry } from "./tool-registry.js";
@@ -115,6 +119,15 @@ import { registerTerminalTools } from "./tools/terminal.js";
 import { registerTransactionTools } from "./tools/transactions.js";
 import { registerWatchTools } from "./tools/watches.js";
 import { registerServerInfoTool } from "./tools/server-info.js";
+import { registerOAuthMetadataRoutes } from "./routes/oauth-metadata.js";
+import { registerOwnerConsoleRoutes } from "./routes/owner-console.js";
+
+export interface RemoteAuthOptions {
+  readonly publicOrigin: string;
+  readonly ownerToken: string;
+  readonly signingKeys: readonly OAuthSigningKey[];
+  readonly requireForwardedHttps?: boolean;
+}
 
 export interface CreateHttpServerOptions extends Partial<ServerConfig> {
   readonly database: OperationalDatabase;
@@ -160,12 +173,14 @@ export interface CreateHttpServerOptions extends Partial<ServerConfig> {
   readonly projectCheckpoints?: ProjectCheckpointHelper;
   readonly credentials?: CredentialService;
   readonly credentialModulePath?: string;
+  readonly remoteAuth?: RemoteAuthOptions;
 }
 
 export interface HttpServerHandle {
   readonly url: URL;
   readonly deviceId: string;
   readonly localDevelopmentToken: string;
+  readonly oauthIssuer?: string;
   grantPending(requestId: string, ownerId: string): TrustedGrant;
   clearEmergencyStop(ownerId: string): { readonly active: boolean };
   close(): Promise<void>;
@@ -192,8 +207,39 @@ function tokenMatches(request: Request, expected: string): boolean {
   return presented.length === actual.length && timingSafeEqual(presented, actual);
 }
 
+function bearerToken(request: Request): string | undefined {
+  const authorization = request.header("authorization");
+  return authorization?.startsWith("Bearer ") ? authorization.slice("Bearer ".length) : undefined;
+}
+
+function isLoopbackRequest(request: Request): boolean {
+  const address = request.socket.remoteAddress ?? "";
+  return address === "127.0.0.1" || address === "::1" || address === "::ffff:127.0.0.1";
+}
+
+function assertTrustedProxyRequest(request: Request, remote: RemoteAuthOptions): void {
+  if (remote.requireForwardedHttps === false) return;
+  const expected = new URL(remote.publicOrigin);
+  const forwardedProto = request.header("x-forwarded-proto")?.split(",", 1)[0]?.trim().toLowerCase();
+  if (forwardedProto !== "https") throw new Error("Remote OAuth requests require an HTTPS reverse proxy");
+  const forwardedHost = request.header("x-forwarded-host")?.split(",", 1)[0]?.trim().toLowerCase();
+  if (forwardedHost !== undefined && forwardedHost !== expected.host.toLowerCase()) {
+    throw new Error("Forwarded host does not match the configured public origin");
+  }
+  const origin = request.header("origin");
+  if (origin !== undefined && new URL(origin).origin !== expected.origin) {
+    throw new Error("Request origin does not match the configured public origin");
+  }
+}
+
 export async function createHttpServer(options: CreateHttpServerOptions): Promise<HttpServerHandle> {
   const config = resolveServerConfig(options);
+  if (config.host !== "127.0.0.1" && config.host !== "::1" && config.host !== "localhost" && options.remoteAuth === undefined) {
+    throw new Error("Non-loopback binding requires configured remote OAuth authentication");
+  }
+  if (options.remoteAuth !== undefined && new URL(options.remoteAuth.publicOrigin).protocol !== "https:") {
+    throw new Error("Remote OAuth public origin must use HTTPS");
+  }
   const localDevelopmentToken =
     options.localDevelopmentToken ?? randomBytes(32).toString("base64url");
   if (localDevelopmentToken.length < 32) {
@@ -209,6 +255,48 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
   const redactor = createRedactor();
   const audit = createAuditService({ database: options.database, redactor });
   const registry = new ToolRegistry();
+  let oauthProvider: OAuthProvider | undefined;
+  let oauthClients: ClientRegistry | undefined;
+  let oauthTokens: TokenValidator | undefined;
+  let ownerConsent: OwnerConsentService | undefined;
+  if (options.remoteAuth !== undefined) {
+    const issuer = new URL(options.remoteAuth.publicOrigin).origin;
+    oauthClients = new ClientRegistry({ database: options.database });
+    oauthTokens = new TokenValidator({
+      database: options.database,
+      issuer,
+      audience: new URL(config.endpoint, issuer).href,
+      signingKeys: options.remoteAuth.signingKeys
+    });
+    ownerConsent = new OwnerConsentService({
+      database: options.database,
+      clients: oauthClients,
+      tokens: oauthTokens,
+      ownerToken: options.remoteAuth.ownerToken,
+      onApproved: (client) => {
+        const identity = {
+          principalId: client.principalId,
+          clientId: client.clientId,
+          deviceId: asDeviceId(grants.serverIdentity().deviceId)
+        };
+        if (grants.resolve(identity).state !== "granted") {
+          const request = grants.request({
+            identity,
+            mode: "full_access",
+            scopes: ["computer:*"],
+            requestedBy: `oauth:${client.clientKey}`
+          });
+          grants.grant(request.id, { id: "oauth-owner-consent", kind: "authenticated_owner" });
+        }
+      }
+    });
+    oauthProvider = new LocalOAuthProvider({
+      issuer,
+      audience: new URL(config.endpoint, issuer).href,
+      consent: ownerConsent,
+      tokens: oauthTokens
+    });
+  }
   const http = options.http ?? createHttpService();
   const filesystem = options.filesystem ?? createFilesystemAdapter();
   const documents = options.documents ?? createDocumentService({
@@ -437,16 +525,73 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
   const sessions = new Map<string, SessionRecord>();
   const app = createMcpExpressApp({ host: config.host });
 
+  if (options.remoteAuth !== undefined && oauthProvider && oauthClients && oauthTokens && ownerConsent) {
+    const remote = options.remoteAuth;
+    const rate = new Map<string, { count: number; resetAt: number }>();
+    app.use(["/oauth", "/owner", "/.well-known"], (request, response, next) => {
+      try {
+        assertTrustedProxyRequest(request, remote);
+        const key = request.socket.remoteAddress ?? "unknown";
+        const now = Date.now();
+        const current = rate.get(key);
+        const window = !current || current.resetAt <= now ? { count: 0, resetAt: now + 60_000 } : current;
+        window.count += 1;
+        rate.set(key, window);
+        if (window.count > 120) {
+          response.status(429).setHeader("retry-after", "60").end();
+          return;
+        }
+        next();
+      } catch (error) {
+        response.status(400).json({ error: "invalid_request", error_description: error instanceof Error ? error.message : "Rejected request" });
+      }
+    });
+    app.use(["/oauth", "/owner"], urlencoded({ extended: false, limit: "32kb", parameterLimit: 64 }));
+    registerOAuthMetadataRoutes(app, {
+      provider: oauthProvider,
+      resource: new URL(config.endpoint, remote.publicOrigin).href
+    });
+    registerOwnerConsoleRoutes(app, {
+      provider: oauthProvider,
+      consent: ownerConsent,
+      clients: oauthClients,
+      tokens: oauthTokens,
+      ownerToken: remote.ownerToken,
+      issuer: new URL(remote.publicOrigin).origin,
+      disconnect: (clientKey) => {
+        const client = oauthClients!.get(clientKey);
+        for (const grant of grants.list()) {
+          if (grant.clientId === client.clientId && grant.revokedAt === null) {
+            grants.revoke(grant.id, { id: "owner-console", kind: "authenticated_owner" }, "OAuth client disconnected");
+          }
+        }
+      }
+    });
+  }
+
+  function authenticate(request: Request, sessionId: string): AuthenticatedIdentity {
+    if (tokenMatches(request, localDevelopmentToken) && isLoopbackRequest(request) && request.header("x-forwarded-proto") === undefined) {
+      return identityFromRequest(request, grants.serverIdentity().deviceId, sessionId);
+    }
+    if (options.remoteAuth === undefined || oauthProvider === undefined) throw new Error("Unauthorized");
+    assertTrustedProxyRequest(request, options.remoteAuth);
+    const token = bearerToken(request);
+    if (!token) throw new Error("Missing bearer token");
+    const validated = oauthProvider.validate(token);
+    return {
+      principalId: asPrincipalId(validated.identity.principalId),
+      clientId: asClientId(validated.identity.clientId),
+      deviceId: asDeviceId(grants.serverIdentity().deviceId),
+      sessionId: asSessionId(sessionId)
+    };
+  }
+
   async function handle(request: Request, response: Response): Promise<void> {
     const sessionHeader = request.header("mcp-session-id");
     const existing = sessionHeader ? sessions.get(sessionHeader) : undefined;
     if (existing) {
       try {
-        const requestIdentity = identityFromRequest(
-          request,
-          grants.serverIdentity().deviceId,
-          sessionHeader!
-        );
+        const requestIdentity = authenticate(request, sessionHeader!);
         if (!sameStableIdentity(existing.identity, requestIdentity)) {
           jsonRpcError(response, 401, "Session identity mismatch");
           return;
@@ -474,7 +619,7 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
     const sessionId = randomUUID();
     let identity: AuthenticatedIdentity;
     try {
-      identity = identityFromRequest(request, grants.serverIdentity().deviceId, sessionId);
+      identity = authenticate(request, sessionId);
     } catch (error) {
       jsonRpcError(response, 401, error instanceof Error ? error.message : "Unauthenticated");
       return;
@@ -503,13 +648,6 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
     }
   }
 
-  app.all(config.endpoint, (request, response, next) => {
-    if (!tokenMatches(request, localDevelopmentToken)) {
-      jsonRpcError(response, 401, "Unauthorized");
-      return;
-    }
-    next();
-  });
   app.all(config.endpoint, (request, response) => {
     void handle(request, response);
   });
@@ -527,6 +665,7 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
     url,
     deviceId: grants.serverIdentity().deviceId,
     localDevelopmentToken,
+    ...(options.remoteAuth === undefined ? {} : { oauthIssuer: new URL(options.remoteAuth.publicOrigin).origin }),
     grantPending: (requestId, ownerId) =>
       grants.grant(requestId, { id: ownerId, kind: "local_owner" }),
     clearEmergencyStop: (ownerId) => {

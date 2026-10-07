@@ -4,7 +4,8 @@ export { createMcpServer, type McpServerDependencies } from "./create-mcp-server
 export {
   createHttpServer,
   type CreateHttpServerOptions,
-  type HttpServerHandle
+  type HttpServerHandle,
+  type RemoteAuthOptions
 } from "./http-server.js";
 export {
   coreDescriptor,

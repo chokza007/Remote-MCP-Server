@@ -14,7 +14,7 @@
     "build": "tsc -b",
     "dev": "tsx apps/server/src/index.ts",
     "lint": "tsc -b --pretty false",
-    "start": "node apps/server/dist/index.js",
+    "start": "node apps/server/dist/service-main.js",
     "test": "vitest run",
     "test:acceptance": "vitest run tests/acceptance",
     "typecheck": "tsc -b --pretty false"
