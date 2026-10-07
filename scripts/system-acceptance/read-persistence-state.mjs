@@ -9,7 +9,7 @@ try {
   ).get();
   if (!identity) throw new Error("Server identity is missing");
   const grants = database.prepare(
-    "SELECT COUNT(*) AS count FROM trusted_grants WHERE revoked_at IS NULL"
+    "SELECT COUNT(*) AS count FROM trusted_grants WHERE revoked_at IS NULL AND mode = 'full_access'"
   ).get();
   process.stdout.write(JSON.stringify({ ...identity, activeGrants: Number(grants.count) }));
 } finally {

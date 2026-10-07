@@ -1,6 +1,6 @@
 # Operations Architecture
 
-The server is designed for unattended hours-long work. The Windows scheduled task starts at logon, has no execution time limit, restarts on failure, and points at a dedicated `%ProgramData%\Remote-MCP-Server` data root. The Node service owns the MCP gateway and operational database; optional Python, PowerShell UI Automation, FFmpeg, Git, browser, and privileged-broker components are discovered independently.
+The server is designed for unattended hours-long work. The Windows scheduled task starts at logon, has no execution time limit, restarts on failure, and points at a dedicated `%ProgramData%\Remote-MCP-Server` data root. After a reboot, core automation resumes when the authorized Windows account signs in; the reboot acceptance continuation uses the same logon boundary and waits for the MCP endpoint. The Node service owns the MCP gateway and operational database; optional Python, PowerShell UI Automation, FFmpeg, Git, browser, and privileged-broker components are discovered independently.
 
 Durable work is represented as jobs with dependency-ordered, idempotent steps, event streams, bounded logs, heartbeats, process identity, and verification evidence. Jobs do not depend on an open browser/chat connection. Schedules and watches store only operational definitions and recheck the original grant before dispatch. Resource locks and transaction recovery prevent overlapping unsafe mutations.
 

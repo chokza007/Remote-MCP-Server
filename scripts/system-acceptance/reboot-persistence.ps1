@@ -6,6 +6,7 @@ param(
     [string]$ContinuationTaskName = 'RemoteMcpRebootAcceptance',
     [string]$ServiceTaskName = 'RemoteMcpServer',
     [string]$NodePath = (Get-Command node.exe -ErrorAction Stop).Source,
+    [Uri]$Endpoint = 'http://127.0.0.1:7331/mcp',
     [switch]$PrepareOnly,
     [switch]$AuthorizedSystemTest,
     [switch]$Reboot
@@ -21,6 +22,9 @@ $database = Join-Path $data 'operational.db'
 if (-not (Test-Path -LiteralPath $database -PathType Leaf)) { throw "Operational database is missing: $database" }
 if ([string]::IsNullOrWhiteSpace($StatePath)) { $StatePath = Join-Path $data 'reboot-acceptance-state.json' }
 $state = [System.IO.Path]::GetFullPath($StatePath)
+if ($Endpoint.Scheme -ne 'http' -or -not [System.Net.IPAddress]::IsLoopback(([System.Net.Dns]::GetHostAddresses($Endpoint.DnsSafeHost) | Select-Object -First 1))) {
+    throw 'Reboot continuation endpoint must be loopback HTTP.'
+}
 
 if ($Reboot -and (-not $AuthorizedSystemTest -or $env:REMOTE_MCP_AUTHORIZED_REBOOT_TEST -ne '1')) {
     throw 'Live reboot requires -AuthorizedSystemTest and REMOTE_MCP_AUTHORIZED_REBOOT_TEST=1.'
@@ -54,6 +58,7 @@ $payload = [ordered]@{
     projectRoot = $project
     serviceTaskName = $ServiceTaskName
     continuationTaskName = $ContinuationTaskName
+    endpoint = $Endpoint.AbsoluteUri
     deviceId = [string]$snapshot.deviceId
     securityEpoch = [int]$snapshot.securityEpoch
     activeGrants = [int]$snapshot.activeGrants
@@ -72,7 +77,8 @@ if (-not $AuthorizedSystemTest) { throw 'Registering reboot continuation require
 $continueScript = Join-Path $PSScriptRoot 'continue-after-reboot.ps1'
 $arguments = "-NoLogo -NoProfile -ExecutionPolicy Bypass -File `"$continueScript`" -StatePath `"$state`" -NodePath `"$NodePath`" -AuthorizedSystemTest"
 $action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument $arguments
-$trigger = New-ScheduledTaskTrigger -AtStartup
+$currentIdentity = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+$trigger = New-ScheduledTaskTrigger -AtLogOn -User $currentIdentity
 $principal = New-ScheduledTaskPrincipal -UserId 'SYSTEM' -LogonType ServiceAccount -RunLevel Highest
 $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -ExecutionTimeLimit (New-TimeSpan -Minutes 30)
 Register-ScheduledTask -TaskName $ContinuationTaskName -Action $action -Trigger $trigger -Principal $principal -Settings $settings -Force | Out-Null

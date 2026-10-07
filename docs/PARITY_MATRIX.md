@@ -18,6 +18,6 @@ Status reflects implemented behavior at release verification. `PASS` means autom
 | L GUI/browser | CONDITIONAL | Real adapters and integration tests; requires interactive unlocked desktop and supported browser. Secure desktop/CAPTCHA/MFA remain human. |
 | Persistent Full Access lifecycle | PASS | Grant once, reconnect/restart persistence, revoke/Emergency Stop acceptance. |
 | Administrator broker without repeat UAC | CONDITIONAL | Signed capability and service tests pass; one-time elevated install is required on the target host. |
-| Windows reboot continuation | CONDITIONAL | Signed two-stage suite supplied and simulation verified; disruptive live reboot runs only with explicit system-test switch. |
+| Windows reboot continuation | CONDITIONAL | Signed two-stage suite reconnects to MCP and performs a grant-authorized mutation; disruptive live reboot runs only with explicit system-test switch. |
 
 The canonical machine-readable list is `config/tool-inventory.v1.json`, generated from the running MCP `tools/list` response. `docs/TOOL_INVENTORY.md` is its human-readable form. A release must fail if required core capabilities are unavailable; conditional capabilities must never be silently converted to PASS.

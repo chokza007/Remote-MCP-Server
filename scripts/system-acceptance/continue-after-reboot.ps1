@@ -2,8 +2,10 @@
 param(
     [Parameter(Mandatory = $true)][string]$StatePath,
     [string]$NodePath = (Get-Command node.exe -ErrorAction Stop).Source,
+    [ValidateRange(1, 900)][int]$EndpointWaitSeconds = 180,
     [switch]$AuthorizedSystemTest,
-    [switch]$Simulate
+    [switch]$Simulate,
+    [switch]$VerifyMcp
 )
 
 $ErrorActionPreference = 'Stop'
@@ -34,6 +36,26 @@ if ([string]$snapshot.deviceId -ne [string]$payload.deviceId) { throw 'Device id
 if ([int]$snapshot.securityEpoch -ne [int]$payload.securityEpoch) { throw 'Security epoch changed across reboot.' }
 if ([int]$snapshot.activeGrants -lt [int]$payload.activeGrants) { throw 'Persistent grant count decreased across reboot.' }
 
+$mcpContinuation = $false
+if (-not $Simulate -or $VerifyMcp) {
+    $tokenPath = Join-Path ([string]$payload.dataRoot) 'local-development-token.txt'
+    if (-not (Test-Path -LiteralPath $tokenPath -PathType Leaf)) { throw "Local MCP token is missing: $tokenPath" }
+    $mcpArtifact = Join-Path ([string]$payload.dataRoot) 'reboot-mcp-continuation.txt'
+    $deadline = (Get-Date).AddSeconds($(if ($Simulate) { 1 } else { $EndpointWaitSeconds }))
+    $mcpText = $null
+    do {
+        $mcpText = & $NodePath (Join-Path $PSScriptRoot 'continue-via-mcp.mjs') $database $tokenPath ([string]$payload.endpoint) $mcpArtifact 2>&1
+        if ($LASTEXITCODE -eq 0) { break }
+        if ((Get-Date) -lt $deadline) { Start-Sleep -Seconds 2 }
+    } while ((Get-Date) -lt $deadline)
+    if ($LASTEXITCODE -ne 0) { throw "Post-reboot MCP continuation failed after waiting for the service: $mcpText" }
+    $mcpResult = $mcpText | ConvertFrom-Json
+    if ([string]$mcpResult.result -ne 'PASS' -or -not (Test-Path -LiteralPath $mcpArtifact -PathType Leaf)) {
+        throw 'Post-reboot MCP continuation did not produce verified evidence.'
+    }
+    $mcpContinuation = $true
+}
+
 $report = [ordered]@{
     schemaVersion = 1
     verifiedAt = (Get-Date).ToUniversalTime().ToString('o')
@@ -41,6 +63,7 @@ $report = [ordered]@{
     securityEpoch = [int]$snapshot.securityEpoch
     activeGrants = [int]$snapshot.activeGrants
     simulated = [bool]$Simulate
+    mcpContinuation = $mcpContinuation
     result = 'PASS'
 }
 $reportPath = Join-Path ([string]$payload.dataRoot) 'reboot-acceptance-result.json'

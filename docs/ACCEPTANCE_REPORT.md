@@ -1,7 +1,7 @@
 # Acceptance Report
 
 Release candidate: `v0.1.0`  
-Verification date: 2026-10-07 (Asia/Bangkok)  
+Verification date: 2026-10-08 (Asia/Bangkok)  
 Verified source: Task 26 release commit and annotated `v0.1.0` tag (resolve with `git rev-list -n 1 v0.1.0`)  
 Runtime inventory: schema 1, server 0.1.0, 177 tools generated through MCP `tools/list`
 
@@ -13,7 +13,7 @@ Final release verification: **68 test files passed; 224 tests passed and 1 expli
 
 ## System-dependent evidence
 
-The two-stage reboot scripts use a signed state file and one-shot startup continuation. Their non-disruptive prepare/continue path is verified automatically. A physical reboot is intentionally opt-in with `REMOTE_MCP_AUTHORIZED_REBOOT_TEST=1` and `-Reboot`; it was not forced on the user's active desktop merely to make a report green.
+The two-stage reboot scripts use a signed state file and one-shot startup continuation. Their non-disruptive prepare/continue path reconnects to the loopback MCP endpoint as the persisted principal/client, verifies `authorization_status=granted`, and performs a harmless filesystem mutation without a second approval. A physical reboot is intentionally opt-in with `REMOTE_MCP_AUTHORIZED_REBOOT_TEST=1` and `-Reboot`; it was not forced on the user's active desktop merely to make a report green.
 
 GUI/browser/broker capabilities are conditional on an interactive desktop, supported browser, .NET, elevation, and installation state. Unit/integration/security tests verify their protocols and policy boundaries. Secure desktop, UAC installation, CAPTCHA, MFA, and third-party consent remain human boundaries.
 

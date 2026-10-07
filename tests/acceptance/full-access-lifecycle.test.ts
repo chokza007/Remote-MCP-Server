@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { promisify } from "node:util";
@@ -9,6 +9,7 @@ import { afterEach, describe, expect, test } from "vitest";
 import { asClientId, asDeviceId, asPrincipalId } from "@remote-mcp/contracts";
 import { createEmergencyStopService, createGrantService } from "@remote-mcp/control-plane";
 import { migrateDatabase, openDatabase } from "@remote-mcp/persistence";
+import { createHttpServer } from "../../apps/server/src/http-server.js";
 
 const protector = {
   protect: (value: Uint8Array): Uint8Array => Uint8Array.from(value, (byte) => byte ^ 0x47),
@@ -43,19 +44,26 @@ describe("persistent Full Access lifecycle", () => {
     cleanups.push(() => database.close());
     grants = createGrantService({ database, protector });
     expect(grants.resolve(identity)).toMatchObject({ state: "granted" });
+    const localToken = "REBOOT_ACCEPTANCE_LOCAL_TOKEN_1234567890";
+    await writeFile(join(root, "local-development-token.txt"), localToken, "utf8");
+    const handle = await createHttpServer({
+      database, protector, host: "127.0.0.1", port: 0, localDevelopmentToken: localToken
+    });
+    cleanups.push(() => handle.close());
     const statePath = join(root, "signed-reboot-state.json");
     await execFileAsync("powershell.exe", [
       "-NoProfile", "-ExecutionPolicy", "Bypass", "-File",
       resolve("scripts/system-acceptance/reboot-persistence.ps1"),
-      "-DataRoot", root, "-ProjectRoot", resolve("."), "-StatePath", statePath, "-PrepareOnly"
+      "-DataRoot", root, "-ProjectRoot", resolve("."), "-StatePath", statePath,
+      "-Endpoint", handle.url.href, "-PrepareOnly"
     ]);
     await execFileAsync("powershell.exe", [
       "-NoProfile", "-ExecutionPolicy", "Bypass", "-File",
       resolve("scripts/system-acceptance/continue-after-reboot.ps1"),
-      "-StatePath", statePath, "-Simulate"
+      "-StatePath", statePath, "-Simulate", "-VerifyMcp"
     ]);
     expect(JSON.parse(await readFile(join(root, "reboot-acceptance-result.json"), "utf8")))
-      .toMatchObject({ result: "PASS", simulated: true, deviceId: identity.deviceId });
+      .toMatchObject({ result: "PASS", simulated: true, mcpContinuation: true, deviceId: identity.deviceId });
     const emergency = createEmergencyStopService({ database });
     emergency.activate({ id: "owner", kind: "authenticated_owner" }, "acceptance drill");
     expect(createEmergencyStopService({ database }).isActive()).toBe(true);
