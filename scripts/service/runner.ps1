@@ -9,6 +9,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $project = [System.IO.Path]::GetFullPath($ProjectRoot)
 $data = [System.IO.Path]::GetFullPath($DataRoot)
+Set-Location -LiteralPath $project
 $env:REMOTE_MCP_DATA_ROOT = $data
 $env:REMOTE_MCP_OWNER_TOKEN_FILE = Join-Path $data 'owner-token.txt'
 $env:REMOTE_MCP_SIGNING_KEY_FILE = Join-Path $data 'oauth-signing-key.txt'

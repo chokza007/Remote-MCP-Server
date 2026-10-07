@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Fixed the Windows scheduled-task runner so the MCP server always starts from `ProjectRoot` instead of inheriting `C:\Windows\System32`.
+
 ## 0.1.0 - 2026-10-08
 
 - Initial universal Windows Remote MCP server with Streamable HTTP, OAuth/PKCE, persistent Full Access grants, dark owner console, immediate revoke/disconnect, Emergency Stop, and security reset.
