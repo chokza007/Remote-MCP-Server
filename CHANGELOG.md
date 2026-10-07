@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added a Thai first-run and ChatGPT Secure MCP Tunnel guide, including the correct Tunnel connection flow and troubleshooting for the raw MCP endpoint.
+- Added an elevated local-owner command that binds a pending ChatGPT identity to persistent `computer:*` Full Access once, with an integration test covering persistence.
+- Fixed a Windows process-termination race by waiting for the exact process identity to disappear before reporting termination complete.
 - Fixed the Windows scheduled-task runner so the MCP server always starts from `ProjectRoot` instead of inheriting `C:\Windows\System32`.
 - Fixed service-data ACL setup for Windows account names containing spaces, switched grants to language-neutral SIDs, and made ACL failures stop installation.
 

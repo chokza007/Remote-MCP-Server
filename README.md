@@ -2,6 +2,8 @@
 
 Universal, project-agnostic Windows MCP infrastructure that lets an authenticated ChatGPT/MCP client work on the computer through filesystem, search, terminal, processes, durable jobs, browser, GUI, documents, media, Git, schedules, and operational controls.
 
+> **เริ่มที่นี่:** อ่าน [คู่มือการติดตั้งครั้งแรกและเชื่อมต่อแชตจีพีที](%E0%B8%84%E0%B8%B9%E0%B9%88%E0%B8%A1%E0%B8%B7%E0%B8%AD%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%95%E0%B8%B4%E0%B8%94%E0%B8%95%E0%B8%B1%E0%B9%89%E0%B8%87%E0%B8%84%E0%B8%A3%E0%B8%B1%E0%B9%89%E0%B8%87%E0%B9%81%E0%B8%A3%E0%B8%81%E0%B9%81%E0%B8%A5%E0%B8%B0%E0%B9%80%E0%B8%8A%E0%B8%B7%E0%B9%88%E0%B8%AD%E0%B8%A1%E0%B8%95%E0%B9%88%E0%B8%AD%E0%B9%81%E0%B8%8A%E0%B8%95%E0%B8%88%E0%B8%B5%E0%B8%9E%E0%B8%B5%E0%B8%97%E0%B8%B5.md) ภาษาไทยก่อนใช้งานครั้งแรก โดยเฉพาะขั้นตอน Secure MCP Tunnel สำหรับ ChatGPT บนเว็บ
+
 The authorization model is **grant once, trusted until revoked**. After the owner approves a Full Access grant, covered actions do not create per-command approval popups. The grant survives a new chat, reconnect, server restart, and Windows restart because it is bound to the authenticated principal/client and this device. Revocation, Emergency Stop, device unlink, or a security reset blocks new work immediately.
 
 This is powerful software. Full Access removes approval friction; it does not bypass Windows ACLs, secure desktop, CAPTCHA/MFA, unavailable software, or the server's safety limits. Important operations remain audited and secrets are redacted.
@@ -27,7 +29,7 @@ Set-Location E:\Remote-MCP-Server
 .\scripts\service\install.ps1
 ```
 
-The local MCP endpoint is `http://127.0.0.1:7331/mcp`. The service installer writes the owner token and OAuth signing key under `%ProgramData%\Remote-MCP-Server` with restricted ACLs; do not paste those secrets into chat or commit them. For remote web access, terminate TLS at a trusted reverse proxy and reinstall with `-PublicOrigin https://your-host.example`.
+The local MCP endpoint is `http://127.0.0.1:7331/mcp`. The service installer writes the owner token and OAuth signing key under `%ProgramData%\Remote-MCP-Server` with restricted ACLs; do not paste those secrets into chat or commit them. ChatGPT on the web must use OpenAI Secure MCP Tunnel as described in the Thai first-run guide; do not enter the loopback URL in ChatGPT's Server URL mode. A public deployment instead requires a trusted HTTPS reverse proxy and `-PublicOrigin https://your-host.example`.
 
 To develop without installing the service:
 
@@ -37,7 +39,7 @@ npm run dev
 
 ## Connect and grant once
 
-Register the Streamable HTTP MCP endpoint in the client. On first connection, choose **Grant Full Access to This Computer** in the dark owner consent page. Reconnects from the same authenticated principal/client reuse the existing grant. The owner console lists trusted clients and supports disconnect/revoke.
+Register the Streamable HTTP MCP endpoint in the client. For a private ChatGPT web connection, select **Tunnel**, run OpenAI's `tunnel-client`, request Full Access, and approve the returned request once with `scripts\operations\grant-full-access.ps1`. Reconnects from the same authenticated principal/client reuse the existing grant.
 
 The exact 177-tool catalog and schemas are generated in [docs/TOOL_INVENTORY.md](docs/TOOL_INVENTORY.md). Start with the Thai guides: [Quickstart](docs/THAI_QUICKSTART.md) and [User guide](docs/THAI_USER_GUIDE.md).
 

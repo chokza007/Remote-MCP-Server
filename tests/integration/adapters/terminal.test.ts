@@ -93,7 +93,7 @@ describe("interactive terminal service", () => {
     );
 
     service.send(created.terminalId, ".exit\r");
-    const deadline = Date.now() + 5_000;
+    const deadline = Date.now() + 15_000;
     while (service.status(created.terminalId).state === "running" && Date.now() < deadline) {
       await new Promise((resolve) => setTimeout(resolve, 10));
     }

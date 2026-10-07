@@ -11,6 +11,7 @@ import {
 const execFileAsync = promisify(execFile);
 const trackedMetadata = new Map<number, { readonly parentPid: number; readonly commandLine: string }>();
 const PROCESS_QUERY_TIMEOUT_MS = 15_000;
+const PROCESS_TERMINATION_TIMEOUT_MS = 5_000;
 
 export interface ProcessIdentity {
   readonly pid: number;
@@ -203,6 +204,11 @@ export class ProcessService {
     } catch (error) {
       const message = (error as Error).message;
       if (!/not found|no running instance/iu.test(message)) throw error;
+    }
+    try {
+      await this.wait({ identity: input.identity, timeoutMs: PROCESS_TERMINATION_TIMEOUT_MS });
+    } catch (error) {
+      if (!/creation identity mismatch/iu.test((error as Error).message)) throw error;
     }
   }
 
