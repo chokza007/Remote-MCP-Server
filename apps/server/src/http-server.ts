@@ -74,6 +74,8 @@ import {
   createRuntimeCheckpointService,
   createTransactionService,
   createWatchService,
+  HealthService,
+  SelfTestService,
   type EventBus,
   type ArtifactService,
   type JobService,
@@ -104,7 +106,7 @@ import { registerCredentialTools } from "./tools/credentials.js";
 import { registerFilesystemTools } from "./tools/filesystem.js";
 import { registerGitTools } from "./tools/git.js";
 import { registerGuiTools } from "./tools/gui.js";
-import { registerHealthTool } from "./tools/health.js";
+import { createDefaultCapabilityRegistry, registerHealthTool } from "./tools/health.js";
 import { registerJobTools } from "./tools/jobs.js";
 import { registerLockTools } from "./tools/locks.js";
 import { registerMediaTools } from "./tools/media.js";
@@ -326,6 +328,13 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
       }
     }
   });
+  const gui = options.gui ?? createGuiService({
+    modulePath: options.guiModulePath ?? resolve("helpers/powershell/RemoteMcp.UIAutomation.psm1"),
+    artifactRoot: options.guiArtifactRoot ?? resolve("var/artifacts/screenshots")
+  });
+  const services = options.services ?? createWindowsServiceService();
+  const discovery = options.discovery ?? createSystemDiscovery();
+  const media = options.media ?? createMediaService();
   const transactions = options.transactions ?? createTransactionService({
     database: options.database,
     locks,
@@ -453,6 +462,15 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
       }
     }
   });
+  const capabilityRegistry = createDefaultCapabilityRegistry({
+    databaseIntegrity: () => options.database.integrityCheck(),
+    discovery,
+    browser,
+    gui,
+    services
+  });
+  const health = new HealthService({ database: options.database, registry: capabilityRegistry });
+  const selfTests = new SelfTestService({ database: options.database, jobs, registry: capabilityRegistry });
   registerAuthorizationTools(registry, { grants, emergencyStop });
   registerArtifactTools(registry, artifacts);
   registerArchiveTools(registry, options.archives ?? createArchiveService());
@@ -461,17 +479,14 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
   registerDocumentTools(registry, documents);
   registerFilesystemTools(registry, filesystem);
   registerGitTools(registry, options.git ?? createGitAdapter());
-  registerGuiTools(registry, options.gui ?? createGuiService({
-    modulePath: options.guiModulePath ?? resolve("helpers/powershell/RemoteMcp.UIAutomation.psm1"),
-    artifactRoot: options.guiArtifactRoot ?? resolve("var/artifacts/screenshots")
-  }));
-  registerHealthTool(registry, options.database);
+  registerGuiTools(registry, gui);
+  registerHealthTool(registry, { health, selfTests, capabilities: capabilityRegistry });
   registerJobTools(registry, {
     jobs,
     grants
   });
   registerLockTools(registry, locks);
-  registerMediaTools(registry, options.media ?? createMediaService());
+  registerMediaTools(registry, media);
   registerNotificationTools(registry, notifications);
   registerProjectCheckpointTools(registry, projectCheckpoints);
   registerNetworkTools(registry, {
@@ -506,9 +521,9 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
   registerWatchTools(registry, watches, grants, events);
   registerSystemTools(registry, {
     processes: options.processes ?? createProcessService(),
-    services: options.services ?? createWindowsServiceService(),
+    services,
     ports: options.ports ?? createPortService(),
-    discovery: options.discovery ?? createSystemDiscovery(),
+    discovery,
     environment: options.environment ?? createEnvironmentService()
   });
   registerServerInfoTool(registry, grants);

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "capabilities": [
+    { "id": "browser.playwright", "version": "1.0.0", "required": false },
+    { "id": "core.database", "version": "1.0.0", "required": true },
+    { "id": "core.gateway", "version": "1.0.0", "required": true },
+    { "id": "core.jobs", "version": "1.0.0", "required": true },
+    { "id": "documents.python", "version": "1.0.0", "required": false },
+    { "id": "gui.windows", "version": "1.0.0", "required": false },
+    { "id": "media.ffmpeg", "version": "1.0.0", "required": false },
+    { "id": "privileged.broker", "version": "1.0.0", "required": false },
+    { "id": "system.git", "version": "1.0.0", "required": false },
+    { "id": "system.powershell", "version": "1.0.0", "required": true }
+  ]
+}

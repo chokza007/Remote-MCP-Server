@@ -28,3 +28,6 @@ export * from "./artifacts/lineage.js";
 export * from "./artifacts/artifact-store.js";
 export * from "./state/operational-state.js";
 export * from "./state/runtime-checkpoints.js";
+export * from "./health/capability-registry.js";
+export * from "./health/health-service.js";
+export * from "./health/self-test-service.js";

@@ -65,6 +65,8 @@ describe("MCP gateway contract", () => {
         "browser_type",
         "browser_upload",
         "browser_wait",
+        "capability_manifest",
+        "capability_self_test",
         "clear_emergency_stop",
         "emergency_stop",
         "gui_capture",
@@ -106,8 +108,9 @@ describe("MCP gateway contract", () => {
     });
     expect(health.structuredContent).toMatchObject({
       schemaVersion: 1,
-      status: "ready",
-      database: "ok"
+      status: expect.stringMatching(/^(?:ready|degraded)$/u),
+      database: { status: "ready", writable: true, integrity: ["ok"] },
+      capabilities: expect.any(Array)
     });
   });
 
