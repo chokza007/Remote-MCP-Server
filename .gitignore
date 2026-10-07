@@ -13,3 +13,8 @@ broker/obj/
 .env
 .env.*
 !.env.example
+tools/tunnel-client/*.exe
+tools/tunnel-client/*.zip
+tools/tunnel-client/SHA256SUMS.txt
+tools/tunnel-client/VERSION.txt
+tools/tunnel-client/SOURCE.txt

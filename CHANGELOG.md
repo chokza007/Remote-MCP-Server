@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Added automatic installation and SHA-256 verification of the latest official OpenAI `tunnel-client`, with `tools\tunnel-client` as the project-wide default location.
+- Fixed Windows PowerShell 5.1 default project-path resolution for service, tunnel-client, and reboot acceptance scripts.
 - Added a Thai first-run and ChatGPT Secure MCP Tunnel guide, including the correct Tunnel connection flow and troubleshooting for the raw MCP endpoint.
 - Added an elevated local-owner command that binds a pending ChatGPT identity to persistent `computer:*` Full Access once, with an integration test covering persistence.
 - Fixed a Windows process-termination race by waiting for the exact process identity to disappear before reporting termination complete.

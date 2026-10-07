@@ -1,12 +1,13 @@
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
 param(
     [string]$TaskName = 'RemoteMcpServer',
-    [string]$ProjectRoot = ([System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))),
+    [string]$ProjectRoot,
     [string]$DataRoot = "$env:ProgramData\Remote-MCP-Server",
     [string]$NodePath = (Get-Command node.exe -ErrorAction Stop).Source,
     [ValidatePattern('^https://')]
     [string]$PublicOrigin,
-    [switch]$SkipBuild
+    [switch]$SkipBuild,
+    [switch]$SkipTunnelClient
 )
 
 $ErrorActionPreference = 'Stop'
@@ -20,6 +21,9 @@ function Assert-Administrator {
 }
 
 Assert-Administrator
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) {
+    $ProjectRoot = Join-Path $PSScriptRoot '..\..'
+}
 $project = [System.IO.Path]::GetFullPath($ProjectRoot)
 $data = [System.IO.Path]::GetFullPath($DataRoot)
 if ($data.TrimEnd('\') -in @(
@@ -38,6 +42,10 @@ if (-not $SkipBuild) {
     if ($LASTEXITCODE -ne 0) { throw "npm ci failed with exit code $LASTEXITCODE" }
     & npm.cmd --prefix $project run build
     if ($LASTEXITCODE -ne 0) { throw "npm run build failed with exit code $LASTEXITCODE" }
+}
+if (-not $SkipTunnelClient) {
+    & (Join-Path $project 'scripts\tunnel\install-client.ps1') -ProjectRoot $project
+    if ($LASTEXITCODE -ne 0) { throw "Tunnel client installation failed with exit code $LASTEXITCODE" }
 }
 
 $ownerTokenPath = Join-Path $data 'owner-token.txt'

@@ -1,7 +1,7 @@
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
 param(
     [Parameter(Mandatory = $true)][string]$DataRoot,
-    [string]$ProjectRoot = ([System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..\..'))),
+    [string]$ProjectRoot,
     [string]$StatePath,
     [string]$ContinuationTaskName = 'RemoteMcpRebootAcceptance',
     [string]$ServiceTaskName = 'RemoteMcpServer',
@@ -13,6 +13,9 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) {
+    $ProjectRoot = Join-Path $PSScriptRoot '..\..'
+}
 $data = [System.IO.Path]::GetFullPath($DataRoot).TrimEnd('\')
 $project = [System.IO.Path]::GetFullPath($ProjectRoot).TrimEnd('\')
 if ($data -eq [System.IO.Path]::GetPathRoot($data).TrimEnd('\')) { throw "DataRoot is too broad: $data" }

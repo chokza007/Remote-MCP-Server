@@ -29,6 +29,8 @@ Set-Location E:\Remote-MCP-Server
 .\scripts\service\install.ps1
 ```
 
+The installer also downloads the latest official OpenAI `tunnel-client`, verifies its SHA-256 checksum, and stores the executable plus original ZIP under `E:\Remote-MCP-Server\tools\tunnel-client` by default. Use `-SkipTunnelClient` only for an intentionally offline or server-only installation.
+
 The local MCP endpoint is `http://127.0.0.1:7331/mcp`. The service installer writes the owner token and OAuth signing key under `%ProgramData%\Remote-MCP-Server` with restricted ACLs; do not paste those secrets into chat or commit them. ChatGPT on the web must use OpenAI Secure MCP Tunnel as described in the Thai first-run guide; do not enter the loopback URL in ChatGPT's Server URL mode. A public deployment instead requires a trusted HTTPS reverse proxy and `-PublicOrigin https://your-host.example`.
 
 To develop without installing the service:
@@ -39,7 +41,7 @@ npm run dev
 
 ## Connect and grant once
 
-Register the Streamable HTTP MCP endpoint in the client. For a private ChatGPT web connection, select **Tunnel**, run OpenAI's `tunnel-client`, request Full Access, and approve the returned request once with `scripts\operations\grant-full-access.ps1`. Reconnects from the same authenticated principal/client reuse the existing grant.
+Register the Streamable HTTP MCP endpoint in the client. For a private ChatGPT web connection, select **Tunnel**, run `tools\tunnel-client\tunnel-client.exe`, request Full Access, and approve the returned request once with `scripts\operations\grant-full-access.ps1`. Reconnects from the same authenticated principal/client reuse the existing grant.
 
 The exact 177-tool catalog and schemas are generated in [docs/TOOL_INVENTORY.md](docs/TOOL_INVENTORY.md). Start with the Thai guides: [Quickstart](docs/THAI_QUICKSTART.md) and [User guide](docs/THAI_USER_GUIDE.md).
 

@@ -21,6 +21,8 @@ Set-Location E:\Remote-MCP-Server
 .\scripts\service\install.ps1
 ```
 
+คำสั่งติดตั้งจะสร้าง `E:\Remote-MCP-Server\tools\tunnel-client` ดาวน์โหลดรุ่นล่าสุดจาก OpenAI ตรวจ SHA-256 และเก็บทั้งโปรแกรมกับไฟล์ ZIP ไว้ให้อัตโนมัติ
+
 จุดเชื่อมต่อในเครื่องคือ `http://127.0.0.1:7331/mcp` แต่ ChatGPT บนเว็บต้องเชื่อมผ่าน **Secure MCP Tunnel** ห้ามนำ URL นี้ไปใส่ในช่อง URL ของเซิร์ฟเวอร์โดยตรง หลังเชื่อมสำเร็จให้ผูก Full Access 100% กับตัวตนของ ChatGPT หนึ่งครั้งตามคู่มือฉบับเต็ม จากนั้นระบบไม่ถามรายคำสั่ง และแชทใหม่ รีเฟรช เชื่อมต่อใหม่ รีสตาร์ต server หรือรีบูต Windows ยังใช้สิทธิ์เดิมได้
 
 หากต้องหยุดฉุกเฉิน ให้เปิด PowerShell แบบ Administrator:
