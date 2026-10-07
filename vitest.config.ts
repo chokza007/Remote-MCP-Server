@@ -19,6 +19,7 @@ export default defineConfig({
     environment: "node",
     include: ["tests/**/*.test.ts"],
     pool: "forks",
+    maxWorkers: process.platform === "win32" ? 8 : undefined,
     sequence: { concurrent: false },
     testTimeout: 30_000,
     hookTimeout: 30_000
