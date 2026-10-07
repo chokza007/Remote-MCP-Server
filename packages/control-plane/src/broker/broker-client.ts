@@ -1,5 +1,5 @@
 import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
-import { createConnection } from "node:net";
+import { createConnection, type Socket } from "node:net";
 
 import { RemoteMcpError } from "@remote-mcp/contracts";
 
@@ -92,14 +92,15 @@ export class BrokerClient {
     const envelope = { ...unsignedEnvelope, clientProof: this.proof(unsignedEnvelope) };
     const frame = encodeBrokerFrame(envelope, this.#maxFrameBytes);
     return new Promise<PrivilegedResult>((resolve, reject) => {
-      const socket = createConnection(`\\\\.\\pipe\\${this.#pipeName}`);
       const decoder = new BrokerFrameDecoder({ maxFrameBytes: this.#maxFrameBytes });
+      const deadline = Date.now() + this.#timeoutMs;
+      let socket: Socket | undefined;
       let settled = false;
       const finish = (error?: unknown, response?: BrokerResponse): void => {
         if (settled) return;
         settled = true;
         clearTimeout(timer);
-        socket.destroy();
+        socket?.destroy();
         if (error !== undefined) {
           reject(error);
           return;
@@ -137,23 +138,36 @@ export class BrokerClient {
         });
       };
       const timer = setTimeout(() => finish(new Error("Privileged broker request timeout")), this.#timeoutMs);
-      socket.once("connect", () => socket.write(frame));
-      socket.on("data", (chunk) => {
-        try {
-          for (const value of decoder.push(chunk)) finish(undefined, value as BrokerResponse);
-        } catch (error) {
-          finish(error);
-        }
-      });
-      socket.once("error", (error) => finish(new RemoteMcpError({
-        errorCode: "BROKER_DISCONNECTED",
-        message: `Privileged broker connection failed: ${error.message}`,
-        retryable: true,
-        suggestedAction: "Start or repair the privileged broker service, then retry.",
-        target: this.#pipeName,
-        cause: error
-      })));
-      socket.once("end", () => finish(new Error("Privileged broker disconnected before responding")));
+      const connect = (): void => {
+        if (settled) return;
+        const candidate = createConnection(`\\\\.\\pipe\\${this.#pipeName}`);
+        socket = candidate;
+        candidate.once("connect", () => candidate.write(frame));
+        candidate.on("data", (chunk) => {
+          try {
+            for (const value of decoder.push(chunk)) finish(undefined, value as BrokerResponse);
+          } catch (error) {
+            finish(error);
+          }
+        });
+        candidate.once("error", (error: NodeJS.ErrnoException) => {
+          if (!settled && ["ENOENT", "ECONNREFUSED"].includes(error.code ?? "") && Date.now() + 25 < deadline) {
+            candidate.destroy();
+            setTimeout(connect, 25).unref();
+            return;
+          }
+          finish(new RemoteMcpError({
+            errorCode: "BROKER_DISCONNECTED",
+            message: `Privileged broker connection failed: ${error.message}`,
+            retryable: true,
+            suggestedAction: "Start or repair the privileged broker service, then retry.",
+            target: this.#pipeName,
+            cause: error
+          }));
+        });
+        candidate.once("end", () => finish(new Error("Privileged broker disconnected before responding")));
+      };
+      connect();
     });
   }
 
