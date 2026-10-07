@@ -2,6 +2,11 @@ import { execFile, spawn, type ChildProcess } from "node:child_process";
 import { promisify } from "node:util";
 
 import { RemoteMcpError } from "@remote-mcp/contracts";
+import {
+  createSecurityLimiter,
+  type Disposable,
+  type SecurityLimiter
+} from "@remote-mcp/control-plane";
 
 const execFileAsync = promisify(execFile);
 const trackedMetadata = new Map<number, { readonly parentPid: number; readonly commandLine: string }>();
@@ -36,6 +41,10 @@ export interface WaitProcessInput {
 export interface TerminateProcessInput {
   readonly identity: ProcessIdentity;
   readonly force?: boolean;
+}
+
+export interface ProcessServiceOptions {
+  readonly limiter?: Pick<SecurityLimiter, "acquire">;
 }
 
 function redactCommandLine(value: string | null): string | null {
@@ -99,7 +108,16 @@ function abortIfNeeded(signal?: AbortSignal): void {
 }
 
 export class ProcessService {
-  readonly #children = new Map<number, { readonly process: ChildProcess; exitCode: number | null }>();
+  readonly #children = new Map<number, {
+    readonly process: ChildProcess;
+    readonly quota: Disposable;
+    exitCode: number | null;
+  }>();
+  readonly #limiter: Pick<SecurityLimiter, "acquire">;
+
+  public constructor(options: ProcessServiceOptions = {}) {
+    this.#limiter = options.limiter ?? createSecurityLimiter();
+  }
 
   public async list(): Promise<readonly ProcessInfo[]> {
     return queryProcesses();
@@ -113,20 +131,30 @@ export class ProcessService {
   }
 
   public async start(input: StartProcessInput): Promise<ProcessIdentity> {
+    const quota = this.#limiter.acquire("process");
     const environment = {
       ...Object.fromEntries(
         Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined)
       ),
       ...input.env
     };
-    const child = spawn(input.file, [...(input.args ?? [])], {
-      ...(input.cwd === undefined ? {} : { cwd: input.cwd }),
-      env: environment,
-      windowsHide: true,
-      stdio: "ignore"
-    });
-    if (child.pid === undefined) throw new Error(`Failed to start process: ${input.file}`);
-    const tracked = { process: child, exitCode: null as number | null };
+    let child: ChildProcess;
+    try {
+      child = spawn(input.file, [...(input.args ?? [])], {
+        ...(input.cwd === undefined ? {} : { cwd: input.cwd }),
+        env: environment,
+        windowsHide: true,
+        stdio: "ignore"
+      });
+    } catch (error) {
+      quota.dispose();
+      throw error;
+    }
+    if (child.pid === undefined) {
+      quota.dispose();
+      throw new Error(`Failed to start process: ${input.file}`);
+    }
+    const tracked = { process: child, quota, exitCode: null as number | null };
     this.#children.set(child.pid, tracked);
     trackedMetadata.set(child.pid, {
       parentPid: process.pid,
@@ -134,7 +162,9 @@ export class ProcessService {
     });
     child.once("exit", (code) => {
       tracked.exitCode = code ?? -1;
+      quota.dispose();
     });
+    child.once("error", () => quota.dispose());
     for (let attempt = 0; attempt < 100; attempt += 1) {
       try {
         return (await this.inspect(child.pid)).identity;
@@ -184,6 +214,6 @@ export class ProcessService {
   }
 }
 
-export function createProcessService(): ProcessService {
-  return new ProcessService();
+export function createProcessService(options: ProcessServiceOptions = {}): ProcessService {
+  return new ProcessService(options);
 }

@@ -2,6 +2,8 @@ import { request as httpRequest } from "node:http";
 import { request as httpsRequest } from "node:https";
 import type { LookupFunction } from "node:net";
 
+import { DEFAULT_SECURITY_LIMITS } from "@remote-mcp/control-plane";
+
 import { NetworkError, type UrlPolicy, createUrlPolicy, redactNetworkText } from "./url-policy.js";
 
 export interface HttpRequestInput {
@@ -71,7 +73,7 @@ export class NodeHttpService implements HttpService {
   public constructor(options: HttpServiceOptions = {}) {
     this.#policy = options.urlPolicy ?? createUrlPolicy();
     this.#defaultTimeoutMs = options.defaultTimeoutMs ?? 30_000;
-    this.#defaultMaxResponseBytes = options.defaultMaxResponseBytes ?? 8 * 1024 * 1024;
+    this.#defaultMaxResponseBytes = options.defaultMaxResponseBytes ?? DEFAULT_SECURITY_LIMITS.maxResponseBytes;
     this.#defaultMaxRedirects = options.defaultMaxRedirects ?? 5;
     this.#credentialProvider = options.credentialProvider;
   }

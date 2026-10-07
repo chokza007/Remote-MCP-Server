@@ -43,15 +43,18 @@ export class HealthService {
   readonly #database: HealthDatabase;
   readonly #registry: CapabilityRegistry;
   readonly #now: () => Date;
+  readonly #redact: (value: unknown) => unknown;
 
   public constructor(options: {
     readonly database: HealthDatabase;
     readonly registry: CapabilityRegistry;
     readonly now?: () => Date;
+    readonly redact?: (value: unknown) => unknown;
   }) {
     this.#database = options.database;
     this.#registry = options.registry;
     this.#now = options.now ?? (() => new Date());
+    this.#redact = options.redact ?? secretSafe;
   }
 
   public async report(): Promise<HealthReport> {
@@ -64,7 +67,7 @@ export class HealthService {
       integrity = [error instanceof Error ? error.message : String(error)];
     }
     const databaseReady = writable && integrity.length > 0 && integrity.every((entry) => entry === "ok");
-    const capabilities = secretSafe(await this.#registry.probeAll()) as readonly CapabilityReportEntry[];
+    const capabilities = this.#redact(await this.#registry.probeAll()) as readonly CapabilityReportEntry[];
     const requiredFailure = capabilities.some((entry) => entry.required && (entry.status === "failed" || entry.status === "unavailable"));
     const anyImpaired = capabilities.some((entry) => entry.status !== "ready");
     const status = !databaseReady || requiredFailure ? "failed" : anyImpaired ? "degraded" : "ready";

@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 
 import type { OperationalDatabase } from "@remote-mcp/persistence";
+import { DEFAULT_SECURITY_LIMITS } from "@remote-mcp/control-plane";
 
 import { JobRepository } from "./job-repository.js";
 import type {
@@ -15,6 +16,7 @@ import type {
 export interface JobServiceOptions {
   readonly database: OperationalDatabase;
   readonly now?: () => Date;
+  readonly maxActiveJobs?: number;
 }
 
 function validateGraph(steps: readonly JobStepSpec[]): void {
@@ -53,10 +55,15 @@ function validatePage(cursor: number, limit: number): void {
 export class JobService {
   readonly #repository: JobRepository;
   readonly #now: () => Date;
+  readonly #maxActiveJobs: number;
 
   public constructor(options: JobServiceOptions) {
     this.#repository = new JobRepository(options.database);
     this.#now = options.now ?? (() => new Date());
+    this.#maxActiveJobs = options.maxActiveJobs ?? DEFAULT_SECURITY_LIMITS.maxConcurrentJobs;
+    if (!Number.isSafeInteger(this.#maxActiveJobs) || this.#maxActiveJobs < 1) {
+      throw new Error("maxActiveJobs must be a positive safe integer");
+    }
   }
 
   public submit(submission: JobSubmission): { readonly jobId: string; readonly deduplicated: boolean } {
@@ -67,7 +74,7 @@ export class JobService {
     validateGraph(submission.steps);
     if ((submission.retryPolicy?.maxAttempts ?? 1) < 1) throw new Error("Retry maxAttempts must be positive");
     const jobId = randomUUID();
-    this.#repository.insert(jobId, submission, this.#now().toISOString());
+    this.#repository.insert(jobId, submission, this.#now().toISOString(), this.#maxActiveJobs);
     return { jobId, deduplicated: false };
   }
 

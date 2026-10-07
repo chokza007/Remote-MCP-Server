@@ -1,6 +1,7 @@
 import { isAbsolute, normalize, relative, resolve, sep } from "node:path";
 
 import { RemoteMcpError } from "@remote-mcp/contracts";
+import { DEFAULT_SECURITY_LIMITS } from "@remote-mcp/control-plane";
 
 export type ArchiveErrorCode =
   | "ABSOLUTE_PATH"
@@ -84,10 +85,10 @@ export class DefaultExtractionPolicy implements ExtractionPolicy {
   readonly #maxCompressionRatio: number;
 
   public constructor(options: ArchivePolicyOptions = {}) {
-    this.#maxEntries = options.maxEntries ?? 10_000;
-    this.#maxExpandedBytes = options.maxExpandedBytes ?? 2 * 1024 * 1024 * 1024;
+    this.#maxEntries = options.maxEntries ?? DEFAULT_SECURITY_LIMITS.maxArchiveEntries;
+    this.#maxExpandedBytes = options.maxExpandedBytes ?? DEFAULT_SECURITY_LIMITS.maxArchiveExpandedBytes;
     this.#maxEntryBytes = options.maxEntryBytes ?? 512 * 1024 * 1024;
-    this.#maxCompressionRatio = options.maxCompressionRatio ?? 200;
+    this.#maxCompressionRatio = options.maxCompressionRatio ?? DEFAULT_SECURITY_LIMITS.maxArchiveCompressionRatio;
   }
 
   public validate(entries: readonly RawArchiveEntry[]): readonly ValidatedArchiveEntry[] {

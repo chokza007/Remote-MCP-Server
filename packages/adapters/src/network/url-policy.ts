@@ -1,7 +1,11 @@
-import { lookup } from "node:dns/promises";
-import { BlockList, isIP } from "node:net";
-
 import { RemoteMcpError } from "@remote-mcp/contracts";
+import {
+  createSsrfGuard,
+  isBlockedNetworkAddress,
+  SsrfGuardError,
+  type SecurityResolvedAddress,
+  type SsrfGuard
+} from "@remote-mcp/control-plane";
 
 export type NetworkErrorCode =
   | "CONTENT_LENGTH_MISMATCH"
@@ -17,10 +21,7 @@ export type NetworkErrorCode =
   | "TOO_MANY_REDIRECTS"
   | "UNSUPPORTED_PROTOCOL";
 
-export interface ResolvedAddress {
-  readonly address: string;
-  readonly family: 4 | 6;
-}
+export type ResolvedAddress = SecurityResolvedAddress;
 
 export interface UrlPolicyOptions {
   readonly allowPrivateNetwork?: boolean;
@@ -61,25 +62,8 @@ export class NetworkError extends RemoteMcpError {
   }
 }
 
-const blockedNetworks = new BlockList();
-for (const [network, prefix] of [
-  ["0.0.0.0", 8], ["10.0.0.0", 8], ["100.64.0.0", 10], ["127.0.0.0", 8],
-  ["169.254.0.0", 16], ["172.16.0.0", 12], ["192.0.0.0", 24], ["192.0.2.0", 24],
-  ["192.168.0.0", 16], ["198.18.0.0", 15], ["198.51.100.0", 24], ["203.0.113.0", 24],
-  ["224.0.0.0", 4]
-] as const) blockedNetworks.addSubnet(network, prefix, "ipv4");
-for (const [network, prefix] of [
-  ["::", 128], ["::1", 128], ["64:ff9b:1::", 48], ["100::", 64],
-  ["2001:db8::", 32], ["2002::", 16], ["fc00::", 7], ["fe80::", 10], ["ff00::", 8]
-] as const) blockedNetworks.addSubnet(network, prefix, "ipv6");
-
 export function isPrivateAddress(address: string): boolean {
-  const family = isIP(address);
-  return family === 4
-    ? blockedNetworks.check(address, "ipv4")
-    : family === 6
-      ? blockedNetworks.check(address.split("%")[0] ?? address, "ipv6")
-      : true;
+  return isBlockedNetworkAddress(address);
 }
 
 export interface UrlPolicy {
@@ -87,44 +71,29 @@ export interface UrlPolicy {
 }
 
 export class DefaultUrlPolicy implements UrlPolicy {
-  readonly #allowPrivateNetwork: boolean;
-  readonly #resolver: (hostname: string) => Promise<readonly ResolvedAddress[]>;
+  readonly #guard: SsrfGuard;
 
   public constructor(options: UrlPolicyOptions = {}) {
-    this.#allowPrivateNetwork = options.allowPrivateNetwork ?? false;
-    this.#resolver = options.resolver ?? (async (hostname) => {
-      const literalFamily = isIP(hostname);
-      if (literalFamily !== 0) return [{ address: hostname, family: literalFamily as 4 | 6 }];
-      const resolved = await lookup(hostname, { all: true, verbatim: true });
-      return resolved.map((entry) => ({ address: entry.address, family: entry.family as 4 | 6 }));
-    });
+    this.#guard = createSsrfGuard(options);
   }
 
   public async assertAllowed(url: URL): Promise<AllowedUrl> {
-    if (url.protocol !== "http:" && url.protocol !== "https:") {
-      throw new NetworkError("UNSUPPORTED_PROTOCOL", `Only HTTP and HTTPS URLs are allowed: ${url.protocol}`);
-    }
-    if (url.username || url.password) {
-      const safe = new URL(url);
-      safe.username = "[REDACTED]";
-      safe.password = "";
-      throw new NetworkError("CREDENTIALS_IN_URL", `Credentials must be supplied by reference, not in a URL: ${safe.toString()}`);
-    }
-    const hostname = url.hostname.replace(/^\[|\]$/gu, "");
-    if (!hostname || hostname.toLowerCase() === "localhost") {
-      if (!this.#allowPrivateNetwork) throw new NetworkError("PRIVATE_NETWORK", "Private network targets are not allowed", url.toString());
-    }
-    let addresses: readonly ResolvedAddress[];
     try {
-      addresses = await this.#resolver(hostname);
+      const allowed = await this.#guard.authorize(url);
+      return { url: allowed.url, addresses: allowed.addresses };
     } catch (error) {
-      throw new NetworkError("REQUEST_FAILED", `DNS resolution failed: ${error instanceof Error ? error.message : String(error)}`, url.toString());
+      if (error instanceof SsrfGuardError) {
+        const code: NetworkErrorCode = error.code === "UNSUPPORTED_PROTOCOL"
+          ? "UNSUPPORTED_PROTOCOL"
+          : error.code === "CREDENTIALS_IN_URL"
+            ? "CREDENTIALS_IN_URL"
+            : error.code === "PRIVATE_NETWORK" || error.code === "DNS_REBINDING"
+              ? "PRIVATE_NETWORK"
+              : "REQUEST_FAILED";
+        throw new NetworkError(code, error.message, error.target);
+      }
+      throw error;
     }
-    if (addresses.length === 0) throw new NetworkError("REQUEST_FAILED", "DNS resolution returned no addresses", url.toString());
-    if (!this.#allowPrivateNetwork && addresses.some((entry) => isPrivateAddress(entry.address))) {
-      throw new NetworkError("PRIVATE_NETWORK", "Private or reserved network targets are not allowed", url.toString());
-    }
-    return { url: new URL(url), addresses };
   }
 }
 

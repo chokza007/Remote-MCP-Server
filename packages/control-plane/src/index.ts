@@ -40,6 +40,32 @@ export {
 } from "./security/redactor.js";
 export type { Disposable } from "./security/secret-fingerprints.js";
 export {
+  createSecurityLimiter,
+  DEFAULT_SECURITY_LIMITS,
+  SecurityLimiter,
+  SecurityLimitError,
+  type SecurityLimits
+} from "./security/limits.js";
+export {
+  isUntrustedContent,
+  renderUntrustedForModel,
+  unwrapUntrustedData,
+  wrapUntrustedContent,
+  type UntrustedContent,
+  type UntrustedSource,
+  type UntrustedSourceKind
+} from "./security/untrusted-content.js";
+export {
+  assertUnambiguousWindowsPath,
+  createSsrfGuard,
+  isBlockedNetworkAddress,
+  SsrfGuard,
+  SsrfGuardError,
+  type AuthorizedNetworkTarget,
+  type SecurityResolvedAddress,
+  type SsrfGuardErrorCode
+} from "./security/ssrf-guard.js";
+export {
   createAuditService,
   AuditService,
   type AuditIntegrityResult,

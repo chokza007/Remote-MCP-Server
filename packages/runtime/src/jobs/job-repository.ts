@@ -1,4 +1,5 @@
 import type { OperationalDatabase } from "@remote-mcp/persistence";
+import { SecurityLimitError } from "@remote-mcp/control-plane";
 
 import type {
   JobEvent,
@@ -82,8 +83,17 @@ export class JobRepository {
     return row?.id ?? null;
   }
 
-  public insert(jobId: string, submission: JobSubmission, now: string): void {
+  public insert(jobId: string, submission: JobSubmission, now: string, maxActiveJobs?: number): void {
     this.#database.writeTransaction((connection) => {
+      if (maxActiveJobs !== undefined) {
+        const active = (connection.prepare(`
+          SELECT COUNT(*) AS count FROM jobs
+          WHERE state NOT IN ('succeeded', 'failed', 'cancelled', 'orphaned', 'needs_attention')
+        `).get() as { count: number }).count;
+        if (active >= maxActiveJobs) {
+          throw new SecurityLimitError(`job capacity ${maxActiveJobs} is exhausted`, "job");
+        }
+      }
       connection.prepare(
         `INSERT INTO jobs(
           id, kind, state, principal_id, client_id, session_id, workspace_id, grant_id,

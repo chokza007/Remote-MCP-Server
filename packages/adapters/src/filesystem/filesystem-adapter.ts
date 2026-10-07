@@ -90,6 +90,14 @@ function mutation(
   };
 }
 
+interface MutationPathSnapshot {
+  readonly path: string;
+  readonly mustExist: boolean;
+  readonly anchorRealPath: string;
+  readonly device: number;
+  readonly inode: number;
+}
+
 export class NodeFilesystemAdapter implements FilesystemAdapter {
   readonly #allowedRoots: readonly string[];
   readonly #resolvedAllowedRoots: Promise<readonly string[]>;
@@ -167,19 +175,21 @@ export class NodeFilesystemAdapter implements FilesystemAdapter {
     abortIfNeeded(input.signal);
     const destination = await this.safePath(input.path, false);
     await this.assertDestination(destination, input.overwrite ?? false);
+    const destinationSnapshot = await this.snapshotMutationPath(destination, false);
     if (input.dryRun) return mutation("write", true, false, undefined, destination);
     const data = Buffer.from(input.data, input.encoding ?? "utf8");
-    await this.atomicWrite(destination, data, input.overwrite ?? false, input.signal);
+    await this.atomicWrite(destination, data, input.overwrite ?? false, input.signal, destinationSnapshot);
     return mutation("write", false, true, undefined, destination);
   }
 
   public async applyPatch(input: ApplyPatchInput): Promise<MutationResult> {
     abortIfNeeded(input.signal);
     const path = await this.safePath(input.path);
+    const pathSnapshot = await this.snapshotMutationPath(path, true);
     const original = await readFile(path, "utf8");
     const patched = applyExactTextEdits(original, input.edits);
     if (input.dryRun) return mutation("applyPatch", true, false, path, path);
-    await this.atomicWrite(path, Buffer.from(patched, "utf8"), true, input.signal);
+    await this.atomicWrite(path, Buffer.from(patched, "utf8"), true, input.signal, pathSnapshot);
     return mutation("applyPatch", false, patched !== original, path, path);
   }
 
@@ -187,10 +197,14 @@ export class NodeFilesystemAdapter implements FilesystemAdapter {
     abortIfNeeded(input.signal);
     const source = await this.safePath(input.source);
     const destination = await this.safePath(input.destination, false);
+    const sourceSnapshot = await this.snapshotMutationPath(source, true);
     const sourceStat = await stat(source);
     if (sourceStat.isDirectory() && !input.recursive) throw new Error("Directory copy requires recursive: true");
     await this.assertDestination(destination, input.overwrite ?? false);
+    const destinationSnapshot = await this.snapshotMutationPath(destination, false);
     if (input.dryRun) return mutation("copy", true, false, source, destination);
+    await this.revalidateMutationPath(sourceSnapshot);
+    await this.revalidateMutationPath(destinationSnapshot);
     await cp(source, destination, {
       recursive: input.recursive ?? false,
       force: input.overwrite ?? false,
@@ -205,9 +219,13 @@ export class NodeFilesystemAdapter implements FilesystemAdapter {
     abortIfNeeded(input.signal);
     const source = await this.safePath(input.source);
     const destination = await this.safePath(input.destination, false);
+    const sourceSnapshot = await this.snapshotMutationPath(source, true);
     await this.protectRoot(source);
     await this.assertDestination(destination, input.overwrite ?? false);
+    const destinationSnapshot = await this.snapshotMutationPath(destination, false);
     if (input.dryRun) return mutation("move", true, false, source, destination);
+    await this.revalidateMutationPath(sourceSnapshot);
+    await this.revalidateMutationPath(destinationSnapshot);
     if ((input.overwrite ?? false) && (await exists(destination))) {
       await rm(destination, { recursive: true, force: true });
     }
@@ -238,6 +256,7 @@ export class NodeFilesystemAdapter implements FilesystemAdapter {
   public async recycle(input: PathInput): Promise<RecycleResult> {
     abortIfNeeded(input.signal);
     const source = await this.safePath(input.path);
+    const sourceSnapshot = await this.snapshotMutationPath(source, true);
     await this.protectRoot(source);
     const destination = join(
       this.#recycleDirectory,
@@ -246,6 +265,7 @@ export class NodeFilesystemAdapter implements FilesystemAdapter {
     if (input.dryRun) {
       return { ...mutation("recycle", true, false, source, destination), recoverable: true, recycledPath: destination };
     }
+    await this.revalidateMutationPath(sourceSnapshot);
     await mkdir(this.#recycleDirectory, { recursive: true });
     try {
       await rename(source, destination);
@@ -261,8 +281,10 @@ export class NodeFilesystemAdapter implements FilesystemAdapter {
     abortIfNeeded(input.signal);
     if (!input.permanent) throw new Error("Permanent removal requires permanent: true; use recycle otherwise");
     const path = await this.safePath(input.path);
+    const pathSnapshot = await this.snapshotMutationPath(path, true);
     await this.protectRoot(path);
     if (input.dryRun) return mutation("remove", true, false, path);
+    await this.revalidateMutationPath(pathSnapshot);
     const value = await lstat(path);
     if (value.isDirectory() && !input.recursive) throw new Error("Directory removal requires recursive: true");
     await rm(path, { recursive: input.recursive ?? false, force: false });
@@ -350,6 +372,32 @@ export class NodeFilesystemAdapter implements FilesystemAdapter {
     }
   }
 
+  private async snapshotMutationPath(path: string, mustExist: boolean): Promise<MutationPathSnapshot> {
+    const safe = await this.safePath(path, mustExist);
+    const anchor = mustExist ? safe : dirname(safe);
+    const [anchorRealPath, metadata] = await Promise.all([realpath(anchor), stat(anchor)]);
+    return {
+      path: safe,
+      mustExist,
+      anchorRealPath: normalizeForComparison(anchorRealPath),
+      device: metadata.dev,
+      inode: metadata.ino
+    };
+  }
+
+  private async revalidateMutationPath(snapshot: MutationPathSnapshot): Promise<void> {
+    const current = await this.safePath(snapshot.path, snapshot.mustExist);
+    const anchor = snapshot.mustExist ? current : dirname(current);
+    const [anchorRealPath, metadata] = await Promise.all([realpath(anchor), stat(anchor)]);
+    if (
+      normalizeForComparison(anchorRealPath) !== snapshot.anchorRealPath ||
+      metadata.dev !== snapshot.device ||
+      metadata.ino !== snapshot.inode
+    ) {
+      throw new Error(`Mutation target changed during authorization revalidation: ${snapshot.path}`);
+    }
+  }
+
   private async assertDestination(destination: string, overwrite: boolean): Promise<void> {
     const parent = dirname(destination);
     if (!(await exists(parent)) || !(await stat(parent)).isDirectory()) {
@@ -369,7 +417,8 @@ export class NodeFilesystemAdapter implements FilesystemAdapter {
     destination: string,
     data: Uint8Array,
     overwrite: boolean,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    snapshot?: MutationPathSnapshot
   ): Promise<void> {
     const temporary = join(dirname(destination), `.${basename(destination)}.remote-mcp-tmp-${randomUUID()}`);
     const backup = join(dirname(destination), `.${basename(destination)}.remote-mcp-backup-${randomUUID()}`);
@@ -379,6 +428,7 @@ export class NodeFilesystemAdapter implements FilesystemAdapter {
       abortIfNeeded(signal);
       await this.#beforeAtomicCommit?.(temporary, destination);
       abortIfNeeded(signal);
+      if (snapshot) await this.revalidateMutationPath(snapshot);
       if (overwrite && (await exists(destination))) {
         await rename(destination, backup);
         backupCreated = true;

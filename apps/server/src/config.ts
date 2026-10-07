@@ -11,7 +11,7 @@ export const defaultServerConfig: ServerConfig = Object.freeze({
   port: 7331,
   endpoint: "/mcp",
   maxSessions: 1_000,
-  maxRequestBodyBytes: 1_048_576
+  maxRequestBodyBytes: DEFAULT_SECURITY_LIMITS.maxRequestBytes
 });
 
 export function resolveServerConfig(overrides: Partial<ServerConfig> = {}): ServerConfig {
@@ -28,3 +28,5 @@ export function resolveServerConfig(overrides: Partial<ServerConfig> = {}): Serv
   }
   return Object.freeze(config);
 }
+import { DEFAULT_SECURITY_LIMITS } from "@remote-mcp/control-plane";
+

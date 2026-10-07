@@ -8,6 +8,7 @@
   "include": ["src/**/*.ts"],
   "references": [
     { "path": "../contracts" },
+    { "path": "../control-plane" },
     { "path": "../persistence" }
   ]
 }

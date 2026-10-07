@@ -67,6 +67,7 @@ export {
   ProcessService,
   type ProcessIdentity,
   type ProcessInfo,
+  type ProcessServiceOptions,
   type StartProcessInput,
   type TerminateProcessInput,
   type WaitProcessInput

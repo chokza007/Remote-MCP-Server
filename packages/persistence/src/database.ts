@@ -10,6 +10,31 @@ export interface DatabaseOptions {
   readonly readonly?: boolean;
 }
 
+export class DatabaseBusyError extends Error {
+  public readonly retryable = true;
+  public constructor() {
+    super("Database is busy; retry after current work releases the write lock");
+    this.name = "DatabaseBusyError";
+  }
+}
+
+export class DatabaseCapacityError extends Error {
+  public readonly retryable = false;
+  public constructor() {
+    super("Database storage capacity is exhausted");
+    this.name = "DatabaseCapacityError";
+  }
+}
+
+export function normalizeDatabaseError(error: unknown): Error {
+  const code = typeof error === "object" && error !== null && "code" in error
+    ? String((error as { readonly code: unknown }).code)
+    : "";
+  if (code === "SQLITE_BUSY" || code === "SQLITE_LOCKED") return new DatabaseBusyError();
+  if (code === "SQLITE_FULL") return new DatabaseCapacityError();
+  return error instanceof Error ? error : new Error("Database operation failed");
+}
+
 export class OperationalDatabase {
   readonly #connection: SqliteDatabase;
   public readonly migrationsDirectory: string | undefined;
@@ -20,11 +45,19 @@ export class OperationalDatabase {
   }
 
   public read<Result>(reader: (connection: SqliteDatabase) => Result): Result {
-    return reader(this.#connection);
+    try {
+      return reader(this.#connection);
+    } catch (error) {
+      throw normalizeDatabaseError(error);
+    }
   }
 
   public writeTransaction<Result>(writer: (connection: SqliteDatabase) => Result): Result {
-    return this.#connection.transaction(() => writer(this.#connection))();
+    try {
+      return this.#connection.transaction(() => writer(this.#connection))();
+    } catch (error) {
+      throw normalizeDatabaseError(error);
+    }
   }
 
   public integrityCheck(): readonly string[] {
