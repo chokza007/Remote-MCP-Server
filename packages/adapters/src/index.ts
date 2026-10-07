@@ -211,3 +211,38 @@ export {
   type DocumentResult,
   type DocumentServiceOptions
 } from "./documents/document-service.js";
+export {
+  createGuiService,
+  GuiActionError,
+  GuiService,
+  type GuiActionErrorCode,
+  type GuiCaptureInput,
+  type GuiKeysInput,
+  type GuiServiceOptions,
+  type GuiTargetInput,
+  type GuiTypeInput,
+  type GuiWaitInput
+} from "./gui/gui-service.js";
+export {
+  createPowerShellUiaClient,
+  PowerShellUiaClient,
+  type GuiBackend,
+  type GuiBackendOperation,
+  type GuiBackendRequest,
+  type GuiBackendResponse,
+  type PowerShellUiaClientOptions
+} from "./gui/uia-client.js";
+export {
+  type CoordinateTarget,
+  type DesktopInfo,
+  type ElementSelector,
+  type GuiActionResult,
+  type GuiCaptureResult,
+  type GuiEvidence,
+  type GuiTargetSelector,
+  type GuiTargetStrategy,
+  type ScreenRect,
+  type UiElement,
+  type WindowInfo,
+  type WindowSelector
+} from "./gui/window-model.js";

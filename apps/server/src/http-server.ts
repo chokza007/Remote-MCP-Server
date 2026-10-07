@@ -17,6 +17,7 @@ import {
   createDownloadService,
   createDocumentService,
   createGitAdapter,
+  createGuiService,
   createHttpService,
   createMediaService,
   createPortService,
@@ -32,6 +33,7 @@ import {
   type DocumentService,
   type FilesystemAdapter,
   type GitAdapter,
+  type GuiService,
   type HttpService,
   type MediaService,
   type PortService,
@@ -94,6 +96,7 @@ import { registerDocumentTools } from "./tools/documents.js";
 import { registerCredentialTools } from "./tools/credentials.js";
 import { registerFilesystemTools } from "./tools/filesystem.js";
 import { registerGitTools } from "./tools/git.js";
+import { registerGuiTools } from "./tools/gui.js";
 import { registerHealthTool } from "./tools/health.js";
 import { registerJobTools } from "./tools/jobs.js";
 import { registerLockTools } from "./tools/locks.js";
@@ -122,6 +125,9 @@ export interface CreateHttpServerOptions extends Partial<ServerConfig> {
   readonly documentHelperRoot?: string;
   readonly pythonExecutable?: string;
   readonly git?: GitAdapter;
+  readonly gui?: GuiService;
+  readonly guiModulePath?: string;
+  readonly guiArtifactRoot?: string;
   readonly media?: MediaService;
   readonly search?: SearchService;
   readonly terminal?: TerminalService;
@@ -337,6 +343,10 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
   registerDocumentTools(registry, documents);
   registerFilesystemTools(registry, filesystem);
   registerGitTools(registry, options.git ?? createGitAdapter());
+  registerGuiTools(registry, options.gui ?? createGuiService({
+    modulePath: options.guiModulePath ?? resolve("helpers/powershell/RemoteMcp.UIAutomation.psm1"),
+    artifactRoot: options.guiArtifactRoot ?? resolve("var/artifacts/screenshots")
+  }));
   registerHealthTool(registry, options.database);
   registerJobTools(registry, {
     jobs,
