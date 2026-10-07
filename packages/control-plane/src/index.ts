@@ -72,3 +72,24 @@ export {
   type BrokerClientOptions,
   type PrivilegedResult
 } from "./broker/broker-client.js";
+export {
+  CredentialStore,
+  type CredentialMetadata
+} from "./credentials/credential-store.js";
+export {
+  createCredentialService,
+  CredentialService,
+  type CreateCredentialInput,
+  type CredentialLease,
+  type CredentialServiceOptions,
+  type UpdateCredentialInput
+} from "./credentials/credential-service.js";
+export {
+  createWindowsCredentialManager,
+  WindowsCredentialManager,
+  type WindowsCredentialManagerOptions
+} from "./credentials/windows-credential-manager.js";
+export type {
+  CredentialVault,
+  VaultCredential
+} from "./credentials/windows-credential-manager.js";

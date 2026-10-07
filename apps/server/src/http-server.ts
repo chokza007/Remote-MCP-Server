@@ -45,11 +45,14 @@ import {
 import {
   createApprovalService,
   createAuditService,
+  createCredentialService,
   createEmergencyStopService,
   createGrantService,
   createPolicyEngine,
   createRedactor,
+  createWindowsCredentialManager,
   type AuthenticatedIdentity,
+  type CredentialService,
   type SecretProtector,
   type TrustedGrant
 } from "@remote-mcp/control-plane";
@@ -88,6 +91,7 @@ import { registerAuthorizationTools } from "./tools/authorization.js";
 import { registerArtifactTools } from "./tools/artifacts.js";
 import { registerArchiveTools } from "./tools/archives.js";
 import { registerDocumentTools } from "./tools/documents.js";
+import { registerCredentialTools } from "./tools/credentials.js";
 import { registerFilesystemTools } from "./tools/filesystem.js";
 import { registerGitTools } from "./tools/git.js";
 import { registerHealthTool } from "./tools/health.js";
@@ -141,6 +145,8 @@ export interface CreateHttpServerOptions extends Partial<ServerConfig> {
   readonly operationalState?: OperationalStateService;
   readonly runtimeCheckpoints?: RuntimeCheckpointService;
   readonly projectCheckpoints?: ProjectCheckpointHelper;
+  readonly credentials?: CredentialService;
+  readonly credentialModulePath?: string;
 }
 
 export interface HttpServerHandle {
@@ -211,6 +217,23 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
   const operationalState = options.operationalState ?? createOperationalStateService({ database: options.database });
   const runtimeCheckpoints = options.runtimeCheckpoints ?? createRuntimeCheckpointService({ database: options.database });
   const projectCheckpoints = options.projectCheckpoints ?? createProjectCheckpointHelper({ filesystem, artifacts });
+  const credentials = options.credentials ?? createCredentialService({
+    database: options.database,
+    redactor,
+    vault: createWindowsCredentialManager({
+      modulePath: options.credentialModulePath ?? resolve("helpers/powershell/RemoteMcp.Credentials.psm1")
+    }),
+    authorizeUse: async (credential) => {
+      const first = credential.namespace.indexOf("\0");
+      const second = credential.namespace.indexOf("\0", first + 1);
+      if (first < 1 || second <= first + 1) return false;
+      return grants.resolve({
+        principalId: asPrincipalId(credential.namespace.slice(0, first)),
+        clientId: asClientId(credential.namespace.slice(first + 1, second)),
+        deviceId: asDeviceId(grants.serverIdentity().deviceId)
+      }).state === "granted";
+    }
+  });
   const watches = options.watches ?? createWatchService({
     database: options.database,
     eventBus: events,
@@ -310,6 +333,7 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
   registerAuthorizationTools(registry, { grants, emergencyStop });
   registerArtifactTools(registry, artifacts);
   registerArchiveTools(registry, options.archives ?? createArchiveService());
+  registerCredentialTools(registry, credentials);
   registerDocumentTools(registry, documents);
   registerFilesystemTools(registry, filesystem);
   registerGitTools(registry, options.git ?? createGitAdapter());
