@@ -4,3 +4,8 @@ export * from "./jobs/job-service.js";
 export * from "./jobs/log-store.js";
 export * from "./jobs/runner.js";
 export * from "./jobs/reconciler.js";
+export * from "./locks/lock-repository.js";
+export * from "./locks/lock-service.js";
+export * from "./transactions/change-set.js";
+export * from "./transactions/recovery-store.js";
+export * from "./transactions/transaction-service.js";

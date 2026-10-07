@@ -52,7 +52,14 @@ import {
   type TrustedGrant
 } from "@remote-mcp/control-plane";
 import type { OperationalDatabase } from "@remote-mcp/persistence";
-import { createJobService, type JobService } from "@remote-mcp/runtime";
+import {
+  createJobService,
+  createLockService,
+  createTransactionService,
+  type JobService,
+  type LockService,
+  type TransactionService
+} from "@remote-mcp/runtime";
 
 import { resolveServerConfig, type ServerConfig } from "./config.js";
 import { identityFromRequest, sameStableIdentity } from "./context.js";
@@ -65,11 +72,13 @@ import { registerFilesystemTools } from "./tools/filesystem.js";
 import { registerGitTools } from "./tools/git.js";
 import { registerHealthTool } from "./tools/health.js";
 import { registerJobTools } from "./tools/jobs.js";
+import { registerLockTools } from "./tools/locks.js";
 import { registerMediaTools } from "./tools/media.js";
 import { registerNetworkTools } from "./tools/network.js";
 import { registerSearchTools } from "./tools/search.js";
 import { registerSystemTools } from "./tools/system.js";
 import { registerTerminalTools } from "./tools/terminal.js";
+import { registerTransactionTools } from "./tools/transactions.js";
 import { registerServerInfoTool } from "./tools/server-info.js";
 
 export interface CreateHttpServerOptions extends Partial<ServerConfig> {
@@ -93,6 +102,9 @@ export interface CreateHttpServerOptions extends Partial<ServerConfig> {
   readonly discovery?: SystemDiscovery;
   readonly environment?: EnvironmentService;
   readonly jobs?: JobService;
+  readonly locks?: LockService;
+  readonly transactions?: TransactionService;
+  readonly recoveryRoot?: string;
 }
 
 export interface HttpServerHandle {
@@ -147,6 +159,12 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
     helperRoot: options.documentHelperRoot ?? resolve("helpers/python"),
     ...(options.pythonExecutable === undefined ? {} : { pythonExecutable: options.pythonExecutable })
   });
+  const locks = options.locks ?? createLockService({ database: options.database });
+  const transactions = options.transactions ?? createTransactionService({
+    database: options.database,
+    locks,
+    recoveryRoot: options.recoveryRoot ?? resolve("var/recovery")
+  });
   registerAuthorizationTools(registry, { grants, emergencyStop });
   registerArchiveTools(registry, options.archives ?? createArchiveService());
   registerDocumentTools(registry, documents);
@@ -157,6 +175,7 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
     jobs: options.jobs ?? createJobService({ database: options.database }),
     grants
   });
+  registerLockTools(registry, locks);
   registerMediaTools(registry, options.media ?? createMediaService());
   registerNetworkTools(registry, {
     http,
@@ -184,6 +203,7 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
         redactOutput: (value) => redactor.redact(value) as string
       })
   );
+  registerTransactionTools(registry, transactions);
   registerSystemTools(registry, {
     processes: options.processes ?? createProcessService(),
     services: options.services ?? createWindowsServiceService(),

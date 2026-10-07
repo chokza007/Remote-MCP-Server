@@ -52,6 +52,18 @@ async function inferTargets(argumentsValue: Record<string, unknown>, toolName: s
       if (typeof value === "string") inputs.push({ kind: "path", value });
     }
   }
+  if (Array.isArray(argumentsValue.resources)) {
+    for (const value of argumentsValue.resources) {
+      if (typeof value === "string") inputs.push({ kind: "path", value });
+    }
+  }
+  if (Array.isArray(argumentsValue.changes)) {
+    for (const value of argumentsValue.changes) {
+      if (typeof value === "object" && value !== null && typeof (value as { target?: unknown }).target === "string") {
+        inputs.push({ kind: "path", value: (value as { target: string }).target });
+      }
+    }
+  }
   if (typeof argumentsValue.url === "string") inputs.push({ kind: "url", value: sanitizedUrl(argumentsValue.url) });
   if (typeof argumentsValue.pid === "number") inputs.push({ kind: "process", value: String(argumentsValue.pid) });
   const identity = argumentsValue.identity as { pid?: unknown } | undefined;
@@ -61,6 +73,8 @@ async function inferTargets(argumentsValue: Record<string, unknown>, toolName: s
   }
   if (typeof argumentsValue.port === "number") inputs.push({ kind: "port", value: String(argumentsValue.port) });
   if (typeof argumentsValue.jobId === "string") inputs.push({ kind: "opaque", value: argumentsValue.jobId });
+  if (typeof argumentsValue.leaseId === "string") inputs.push({ kind: "opaque", value: argumentsValue.leaseId });
+  if (typeof argumentsValue.transactionId === "string") inputs.push({ kind: "opaque", value: argumentsValue.transactionId });
   const targets = await Promise.all(inputs.map((input) => canonicalizeTarget(input)));
   return [...new Map(targets.map((target) => [target.identityKey, target])).values()];
 }
