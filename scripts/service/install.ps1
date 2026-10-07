@@ -33,7 +33,6 @@ if (-not (Test-Path -LiteralPath (Join-Path $project 'package.json') -PathType L
 if (-not $PSCmdlet.ShouldProcess($TaskName, 'Install persistent Remote MCP startup task')) { return }
 
 New-Item -ItemType Directory -Path $data -Force | Out-Null
-& icacls.exe $data /inheritance:r /grant:r "SYSTEM:(OI)(CI)F" "Administrators:(OI)(CI)F" "$env:USERNAME:(OI)(CI)M" | Out-Null
 if (-not $SkipBuild) {
     & npm.cmd --prefix $project ci
     if ($LASTEXITCODE -ne 0) { throw "npm ci failed with exit code $LASTEXITCODE" }
@@ -51,8 +50,8 @@ foreach ($path in @($ownerTokenPath, $signingKeyPath)) {
         [System.IO.File]::WriteAllText($path, [Convert]::ToBase64String($bytes))
         [Array]::Clear($bytes, 0, $bytes.Length)
     }
-    & icacls.exe $path /inheritance:r /grant:r "SYSTEM:F" "Administrators:F" "$env:USERNAME:R" | Out-Null
 }
+& (Join-Path $PSScriptRoot 'protect-data.ps1') -DataRoot $data -SecretPath @($ownerTokenPath, $signingKeyPath)
 
 $arguments = @(
     '-NoLogo', '-NoProfile', '-ExecutionPolicy', 'Bypass',

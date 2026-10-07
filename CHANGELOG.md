@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Fixed the Windows scheduled-task runner so the MCP server always starts from `ProjectRoot` instead of inheriting `C:\Windows\System32`.
+- Fixed service-data ACL setup for Windows account names containing spaces, switched grants to language-neutral SIDs, and made ACL failures stop installation.
 
 ## 0.1.0 - 2026-10-08
 
