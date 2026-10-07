@@ -53,17 +53,28 @@ import {
 } from "@remote-mcp/control-plane";
 import type { OperationalDatabase } from "@remote-mcp/persistence";
 import {
+  createEventBus,
   createJobService,
   createLockService,
+  createMcpNotifier,
+  createNotificationService,
+  createScheduleRunner,
+  createScheduleService,
   createTransactionService,
+  createWatchService,
+  type EventBus,
   type JobService,
   type LockService,
-  type TransactionService
+  type NotificationService,
+  type ScheduleRunner,
+  type ScheduleService,
+  type TransactionService,
+  type WatchService
 } from "@remote-mcp/runtime";
 
 import { resolveServerConfig, type ServerConfig } from "./config.js";
-import { identityFromRequest, sameStableIdentity } from "./context.js";
-import { createMcpServer } from "./create-mcp-server.js";
+import { createToolContext, identityFromRequest, sameStableIdentity } from "./context.js";
+import { createMcpServer, inferTargets } from "./create-mcp-server.js";
 import { ToolRegistry } from "./tool-registry.js";
 import { registerAuthorizationTools } from "./tools/authorization.js";
 import { registerArchiveTools } from "./tools/archives.js";
@@ -75,10 +86,13 @@ import { registerJobTools } from "./tools/jobs.js";
 import { registerLockTools } from "./tools/locks.js";
 import { registerMediaTools } from "./tools/media.js";
 import { registerNetworkTools } from "./tools/network.js";
+import { registerNotificationTools } from "./tools/notifications.js";
+import { registerScheduleTools } from "./tools/schedules.js";
 import { registerSearchTools } from "./tools/search.js";
 import { registerSystemTools } from "./tools/system.js";
 import { registerTerminalTools } from "./tools/terminal.js";
 import { registerTransactionTools } from "./tools/transactions.js";
+import { registerWatchTools } from "./tools/watches.js";
 import { registerServerInfoTool } from "./tools/server-info.js";
 
 export interface CreateHttpServerOptions extends Partial<ServerConfig> {
@@ -105,6 +119,12 @@ export interface CreateHttpServerOptions extends Partial<ServerConfig> {
   readonly locks?: LockService;
   readonly transactions?: TransactionService;
   readonly recoveryRoot?: string;
+  readonly events?: EventBus;
+  readonly watches?: WatchService;
+  readonly schedules?: ScheduleService;
+  readonly scheduleRunner?: ScheduleRunner;
+  readonly notifications?: NotificationService;
+  readonly schedulerPollMs?: number;
 }
 
 export interface HttpServerHandle {
@@ -165,6 +185,104 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
     locks,
     recoveryRoot: options.recoveryRoot ?? resolve("var/recovery")
   });
+  const jobs = options.jobs ?? createJobService({ database: options.database });
+  const events = options.events ?? createEventBus({ database: options.database });
+  const watches = options.watches ?? createWatchService({
+    database: options.database,
+    eventBus: events,
+    urlProbe: async (url) => {
+      const response = await http.request({ url, maxResponseBytes: 1_048_576, timeoutMs: 10_000 });
+      return { status: response.status, body: response.body };
+    },
+    jobState: async (jobId) => jobs.get(jobId).state,
+    authorize: async (watch) => {
+      if (!watch.grantId) return false;
+      const separator = watch.ownerId.indexOf("\0");
+      if (separator < 1) return false;
+      const resolution = grants.resolve({
+        principalId: asPrincipalId(watch.ownerId.slice(0, separator)),
+        clientId: asClientId(watch.ownerId.slice(separator + 1)),
+        deviceId: asDeviceId(grants.serverIdentity().deviceId)
+      });
+      return resolution.state === "granted" && resolution.grant.id === watch.grantId;
+    }
+  });
+  const schedules = options.schedules ?? createScheduleService({ database: options.database });
+  const notifications = options.notifications ?? createNotificationService({
+    database: options.database,
+    notifiers: { mcp: createMcpNotifier({ eventBus: events }) }
+  });
+  const scheduleRunner = options.scheduleRunner ?? createScheduleRunner({
+    database: options.database,
+    authorize: async (schedule) => {
+      const separator = schedule.ownerId.indexOf("\0");
+      if (separator < 1) return false;
+      const resolution = grants.resolve({
+        principalId: asPrincipalId(schedule.ownerId.slice(0, separator)),
+        clientId: asClientId(schedule.ownerId.slice(separator + 1)),
+        deviceId: asDeviceId(grants.serverIdentity().deviceId)
+      });
+      return resolution.state === "granted" && resolution.grant.id === schedule.grantId;
+    },
+    dispatch: async (schedule, scheduledFor) => {
+      const separator = schedule.ownerId.indexOf("\0");
+      if (separator < 1) throw new Error("Scheduled owner identity is invalid");
+      const identity = {
+        principalId: asPrincipalId(schedule.ownerId.slice(0, separator)),
+        clientId: asClientId(schedule.ownerId.slice(separator + 1)),
+        deviceId: asDeviceId(grants.serverIdentity().deviceId)
+      };
+      const tool = registry.entries().find((entry) => entry.descriptor.name === schedule.action.tool);
+      if (!tool) throw new Error(`Scheduled tool is unavailable: ${schedule.action.tool}`);
+      const context = createToolContext(identity);
+      const targets = await inferTargets(schedule.action.arguments, tool.descriptor.name);
+      const decision = await policy.authorize({
+        identity,
+        correlationId: context.correlationId,
+        action: {
+          name: tool.descriptor.name,
+          version: tool.descriptor.version,
+          riskTier: tool.descriptor.riskTier,
+          requiredScope: tool.descriptor.requiredScope,
+          mutates: tool.descriptor.riskTier > 0,
+          actionClass: tool.descriptor.name
+        },
+        payload: schedule.action.arguments,
+        targets,
+        preview: null,
+        recoveryPlan: null
+      });
+      if (decision.kind !== "allow" || decision.grantId !== schedule.grantId) {
+        throw new Error(decision.kind === "deny" ? decision.reason : "Scheduled authorization requires interaction");
+      }
+      try {
+        const output = await tool.handler(schedule.action.arguments, context);
+        audit.record({
+          correlationId: context.correlationId,
+          principalId: identity.principalId,
+          clientId: identity.clientId,
+          grantId: decision.grantId,
+          eventType: "schedule.completed",
+          toolName: tool.descriptor.name,
+          targets,
+          result: { scheduledFor, scheduleId: schedule.scheduleId, output: tool.auditResult(output) }
+        });
+        return output;
+      } catch (error) {
+        audit.record({
+          correlationId: context.correlationId,
+          principalId: identity.principalId,
+          clientId: identity.clientId,
+          grantId: decision.grantId,
+          eventType: "schedule.failed",
+          toolName: tool.descriptor.name,
+          targets,
+          result: { scheduledFor, scheduleId: schedule.scheduleId, error: error instanceof Error ? error.message : String(error) }
+        });
+        throw error;
+      }
+    }
+  });
   registerAuthorizationTools(registry, { grants, emergencyStop });
   registerArchiveTools(registry, options.archives ?? createArchiveService());
   registerDocumentTools(registry, documents);
@@ -172,11 +290,12 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
   registerGitTools(registry, options.git ?? createGitAdapter());
   registerHealthTool(registry, options.database);
   registerJobTools(registry, {
-    jobs: options.jobs ?? createJobService({ database: options.database }),
+    jobs,
     grants
   });
   registerLockTools(registry, locks);
   registerMediaTools(registry, options.media ?? createMediaService());
+  registerNotificationTools(registry, notifications);
   registerNetworkTools(registry, {
     http,
     downloads: options.downloads ?? createDownloadService({
@@ -194,6 +313,7 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
     })
   });
   registerSearchTools(registry, options.search ?? createSearchService({ database: options.database }));
+  registerScheduleTools(registry, { schedules, grants, runDue: () => scheduleRunner.runDue() });
   registerTerminalTools(
     registry,
     options.terminal ??
@@ -204,6 +324,7 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
       })
   );
   registerTransactionTools(registry, transactions);
+  registerWatchTools(registry, watches, grants, events);
   registerSystemTools(registry, {
     processes: options.processes ?? createProcessService(),
     services: options.services ?? createWindowsServiceService(),
@@ -212,6 +333,15 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
     environment: options.environment ?? createEnvironmentService()
   });
   registerServerInfoTool(registry, grants);
+  await watches.start();
+  let scheduleRunning = false;
+  const schedulerTimer = setInterval(() => {
+    if (scheduleRunning) return;
+    scheduleRunning = true;
+    void Promise.allSettled([scheduleRunner.runDue(), notifications.retryDue()])
+      .finally(() => { scheduleRunning = false; });
+  }, options.schedulerPollMs ?? 500);
+  schedulerTimer.unref();
 
   const sessions = new Map<string, SessionRecord>();
   const app = createMcpExpressApp({ host: config.host });
@@ -313,6 +443,8 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
       return { active: emergencyStop.isActive() };
     },
     close: async () => {
+      clearInterval(schedulerTimer);
+      await watches.stop();
       await Promise.allSettled([...sessions.values()].map(({ transport }) => transport.close()));
       sessions.clear();
       await documents.close();

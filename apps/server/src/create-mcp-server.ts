@@ -39,7 +39,7 @@ function sanitizedUrl(value: string): string {
   return url.toString();
 }
 
-async function inferTargets(argumentsValue: Record<string, unknown>, toolName: string): Promise<readonly CanonicalTarget[]> {
+export async function inferTargets(argumentsValue: Record<string, unknown>, toolName: string): Promise<readonly CanonicalTarget[]> {
   const inputs: Array<{ kind: "path" | "url" | "process" | "service" | "port" | "opaque"; value: string }> = [];
   for (const key of [
     "path", "source", "destination", "root", "archive", "startPath", "cwd",

@@ -120,8 +120,8 @@ describe("operational database", () => {
       5_000
     );
 
-    expect(persistence.migrateDatabase(database)).toEqual({ applied: 4, currentVersion: 4 });
-    expect(persistence.migrateDatabase(database)).toEqual({ applied: 0, currentVersion: 4 });
+    expect(persistence.migrateDatabase(database)).toEqual({ applied: 5, currentVersion: 5 });
+    expect(persistence.migrateDatabase(database)).toEqual({ applied: 0, currentVersion: 5 });
 
     const tables = database.read((connection) =>
       connection
