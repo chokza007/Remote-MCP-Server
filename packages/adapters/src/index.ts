@@ -31,6 +31,17 @@ export {
   type ProjectGuidanceReference
 } from "./filesystem/project-discovery.js";
 export {
+  createProjectCheckpointHelper,
+  ProjectCheckpointHelper,
+  type CheckpointArtifactReference,
+  type CheckpointArtifactRegistry,
+  type ProjectCheckpointContents,
+  type ProjectCheckpointHelperOptions,
+  type ProjectCheckpointUpdate,
+  type ReadProjectCheckpointInput,
+  type UpdateProjectCheckpointInput
+} from "./projects/checkpoint-helper.js";
+export {
   createSearchService,
   SearchService,
   type SearchPage,

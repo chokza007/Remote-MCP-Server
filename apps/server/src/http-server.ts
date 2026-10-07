@@ -21,6 +21,7 @@ import {
   createMediaService,
   createPortService,
   createProcessService,
+  createProjectCheckpointHelper,
   createSearchService,
   createSystemDiscovery,
   createTerminalService,
@@ -35,6 +36,7 @@ import {
   type MediaService,
   type PortService,
   type ProcessService,
+  type ProjectCheckpointHelper,
   type SearchService,
   type SystemDiscovery,
   type TerminalService,
@@ -54,20 +56,26 @@ import {
 import type { OperationalDatabase } from "@remote-mcp/persistence";
 import {
   createEventBus,
+  createArtifactService,
   createJobService,
   createLockService,
   createMcpNotifier,
   createNotificationService,
   createScheduleRunner,
   createScheduleService,
+  createOperationalStateService,
+  createRuntimeCheckpointService,
   createTransactionService,
   createWatchService,
   type EventBus,
+  type ArtifactService,
   type JobService,
   type LockService,
   type NotificationService,
   type ScheduleRunner,
   type ScheduleService,
+  type OperationalStateService,
+  type RuntimeCheckpointService,
   type TransactionService,
   type WatchService
 } from "@remote-mcp/runtime";
@@ -77,6 +85,7 @@ import { createToolContext, identityFromRequest, sameStableIdentity } from "./co
 import { createMcpServer, inferTargets } from "./create-mcp-server.js";
 import { ToolRegistry } from "./tool-registry.js";
 import { registerAuthorizationTools } from "./tools/authorization.js";
+import { registerArtifactTools } from "./tools/artifacts.js";
 import { registerArchiveTools } from "./tools/archives.js";
 import { registerDocumentTools } from "./tools/documents.js";
 import { registerFilesystemTools } from "./tools/filesystem.js";
@@ -87,9 +96,11 @@ import { registerLockTools } from "./tools/locks.js";
 import { registerMediaTools } from "./tools/media.js";
 import { registerNetworkTools } from "./tools/network.js";
 import { registerNotificationTools } from "./tools/notifications.js";
+import { registerProjectCheckpointTools } from "./tools/project-checkpoints.js";
 import { registerScheduleTools } from "./tools/schedules.js";
 import { registerSearchTools } from "./tools/search.js";
 import { registerSystemTools } from "./tools/system.js";
+import { registerStateTools } from "./tools/state.js";
 import { registerTerminalTools } from "./tools/terminal.js";
 import { registerTransactionTools } from "./tools/transactions.js";
 import { registerWatchTools } from "./tools/watches.js";
@@ -125,6 +136,11 @@ export interface CreateHttpServerOptions extends Partial<ServerConfig> {
   readonly scheduleRunner?: ScheduleRunner;
   readonly notifications?: NotificationService;
   readonly schedulerPollMs?: number;
+  readonly artifacts?: ArtifactService;
+  readonly artifactStoreRoot?: string;
+  readonly operationalState?: OperationalStateService;
+  readonly runtimeCheckpoints?: RuntimeCheckpointService;
+  readonly projectCheckpoints?: ProjectCheckpointHelper;
 }
 
 export interface HttpServerHandle {
@@ -175,6 +191,7 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
   const audit = createAuditService({ database: options.database, redactor });
   const registry = new ToolRegistry();
   const http = options.http ?? createHttpService();
+  const filesystem = options.filesystem ?? createFilesystemAdapter();
   const documents = options.documents ?? createDocumentService({
     helperRoot: options.documentHelperRoot ?? resolve("helpers/python"),
     ...(options.pythonExecutable === undefined ? {} : { pythonExecutable: options.pythonExecutable })
@@ -187,6 +204,13 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
   });
   const jobs = options.jobs ?? createJobService({ database: options.database });
   const events = options.events ?? createEventBus({ database: options.database });
+  const artifacts = options.artifacts ?? createArtifactService({
+    database: options.database,
+    storeRoot: options.artifactStoreRoot ?? resolve("var/artifacts")
+  });
+  const operationalState = options.operationalState ?? createOperationalStateService({ database: options.database });
+  const runtimeCheckpoints = options.runtimeCheckpoints ?? createRuntimeCheckpointService({ database: options.database });
+  const projectCheckpoints = options.projectCheckpoints ?? createProjectCheckpointHelper({ filesystem, artifacts });
   const watches = options.watches ?? createWatchService({
     database: options.database,
     eventBus: events,
@@ -284,9 +308,10 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
     }
   });
   registerAuthorizationTools(registry, { grants, emergencyStop });
+  registerArtifactTools(registry, artifacts);
   registerArchiveTools(registry, options.archives ?? createArchiveService());
   registerDocumentTools(registry, documents);
-  registerFilesystemTools(registry, options.filesystem ?? createFilesystemAdapter());
+  registerFilesystemTools(registry, filesystem);
   registerGitTools(registry, options.git ?? createGitAdapter());
   registerHealthTool(registry, options.database);
   registerJobTools(registry, {
@@ -296,6 +321,7 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
   registerLockTools(registry, locks);
   registerMediaTools(registry, options.media ?? createMediaService());
   registerNotificationTools(registry, notifications);
+  registerProjectCheckpointTools(registry, projectCheckpoints);
   registerNetworkTools(registry, {
     http,
     downloads: options.downloads ?? createDownloadService({
@@ -313,6 +339,7 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
     })
   });
   registerSearchTools(registry, options.search ?? createSearchService({ database: options.database }));
+  registerStateTools(registry, operationalState, runtimeCheckpoints);
   registerScheduleTools(registry, { schedules, grants, runDue: () => scheduleRunner.runDue() });
   registerTerminalTools(
     registry,

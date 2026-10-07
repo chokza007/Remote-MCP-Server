@@ -23,3 +23,8 @@ export * from "./scheduler/schedule-runner.js";
 export * from "./notifications/notification-service.js";
 export * from "./notifications/local-notifier.js";
 export * from "./notifications/mcp-notifier.js";
+export * from "./artifacts/artifact-repository.js";
+export * from "./artifacts/lineage.js";
+export * from "./artifacts/artifact-store.js";
+export * from "./state/operational-state.js";
+export * from "./state/runtime-checkpoints.js";
