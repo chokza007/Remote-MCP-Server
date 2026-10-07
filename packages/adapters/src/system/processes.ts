@@ -48,15 +48,13 @@ function redactCommandLine(value: string | null): string | null {
 
 async function queryProcesses(pid?: number): Promise<readonly ProcessInfo[]> {
   const source = pid === undefined
-    ? "Get-Process -ErrorAction SilentlyContinue"
-    : `Get-Process -Id ${pid} -ErrorAction SilentlyContinue`;
+    ? "Get-CimInstance Win32_Process -ErrorAction Stop"
+    : `Get-CimInstance Win32_Process -Filter \"ProcessId=${pid}\" -ErrorAction Stop`;
   const script = [
     `$items = @(${source});`,
     "$out = @($items | ForEach-Object {",
-    "$started = $null; $path = $null;",
-    "try { $started = $_.StartTime.ToUniversalTime().ToString('o') } catch {} ;",
-    "try { $path = $_.Path } catch {} ;",
-    "if ($started) { [pscustomobject]@{ pid=[int]$_.Id; name=([string]$_.ProcessName + '.exe'); executable=$path; createdAt=$started } }",
+    "$started = $null; try { $started = $_.CreationDate.ToUniversalTime().ToString('o') } catch {} ;",
+    "if ($started) { [pscustomobject]@{ pid=[int]$_.ProcessId; parentPid=[int]$_.ParentProcessId; name=[string]$_.Name; executable=$_.ExecutablePath; createdAt=$started } }",
     "}); ConvertTo-Json -InputObject $out -Compress -Depth 4"
   ].join(" ");
   try {
@@ -67,6 +65,7 @@ async function queryProcesses(pid?: number): Promise<readonly ProcessInfo[]> {
     });
     const raw = stdout.trim().length === 0 ? [] : JSON.parse(stdout) as Array<{
       pid: number;
+      parentPid: number;
       name: string;
       executable: string | null;
       createdAt: string | null;
@@ -77,7 +76,7 @@ async function queryProcesses(pid?: number): Promise<readonly ProcessInfo[]> {
         const tracked = trackedMetadata.get(entry.pid);
         return {
           identity: { pid: entry.pid, createdAt: entry.createdAt! },
-          parentPid: tracked?.parentPid ?? 0,
+          parentPid: tracked?.parentPid ?? entry.parentPid,
           name: entry.name,
           executable: entry.executable,
           commandLine: redactCommandLine(tracked?.commandLine ?? null)
