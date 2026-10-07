@@ -246,3 +246,36 @@ export {
   type WindowInfo,
   type WindowSelector
 } from "./gui/window-model.js";
+export {
+  BrowserActionError,
+  BrowserService,
+  createBrowserService,
+  discoverBrowserExecutable,
+  type BrowserActionErrorCode,
+  type BrowserContextInfo,
+  type BrowserInspection,
+  type BrowserInspectionElement,
+  type BrowserServiceOptions,
+  type BrowserTabInfo,
+  type BrowserTarget
+} from "./browser/browser-service.js";
+export {
+  BrowserPolicy,
+  BrowserPolicyError,
+  createBrowserPolicy,
+  type BrowserPolicyErrorCode,
+  type BrowserPolicyOptions
+} from "./browser/browser-policy.js";
+export {
+  BrowserDownloadManager,
+  type BrowserArtifact
+} from "./browser/download-manager.js";
+export {
+  BrowserProfileManager,
+  InMemoryBrowserLock,
+  createBrowserProfileManager,
+  createInMemoryBrowserLock,
+  type BrowserProfileLease,
+  type BrowserProfileLock,
+  type ProfileManagerOptions
+} from "./browser/profile-manager.js";

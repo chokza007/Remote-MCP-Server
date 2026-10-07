@@ -14,6 +14,7 @@ import {
   createFilesystemAdapter,
   createEnvironmentService,
   createArchiveService,
+  createBrowserService,
   createDownloadService,
   createDocumentService,
   createGitAdapter,
@@ -29,6 +30,7 @@ import {
   createWindowsServiceService,
   type EnvironmentService,
   type ArchiveService,
+  type BrowserService,
   type DownloadService,
   type DocumentService,
   type FilesystemAdapter,
@@ -92,6 +94,7 @@ import { ToolRegistry } from "./tool-registry.js";
 import { registerAuthorizationTools } from "./tools/authorization.js";
 import { registerArtifactTools } from "./tools/artifacts.js";
 import { registerArchiveTools } from "./tools/archives.js";
+import { registerBrowserTools } from "./tools/browser.js";
 import { registerDocumentTools } from "./tools/documents.js";
 import { registerCredentialTools } from "./tools/credentials.js";
 import { registerFilesystemTools } from "./tools/filesystem.js";
@@ -119,6 +122,10 @@ export interface CreateHttpServerOptions extends Partial<ServerConfig> {
   readonly localDevelopmentToken?: string;
   readonly filesystem?: FilesystemAdapter;
   readonly archives?: ArchiveService;
+  readonly browser?: BrowserService;
+  readonly browserProfileRoot?: string;
+  readonly browserArtifactRoot?: string;
+  readonly browserExecutablePath?: string;
   readonly http?: HttpService;
   readonly downloads?: DownloadService;
   readonly documents?: DocumentService;
@@ -209,6 +216,28 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
     ...(options.pythonExecutable === undefined ? {} : { pythonExecutable: options.pythonExecutable })
   });
   const locks = options.locks ?? createLockService({ database: options.database });
+  const browser = options.browser ?? createBrowserService({
+    profileRoot: options.browserProfileRoot ?? resolve("var/browser/profiles"),
+    artifactRoot: options.browserArtifactRoot ?? resolve("var/artifacts/browser"),
+    ...(options.browserExecutablePath === undefined ? {} : { executablePath: options.browserExecutablePath }),
+    lock: {
+      acquire: async (key, ownerId) => {
+        const lease = await locks.acquire({
+          ownerId,
+          resources: [resolve("var/browser/locks", key)],
+          leaseMs: 86_400_000
+        });
+        const renewal = setInterval(() => {
+          void locks.renew(lease.leaseId, ownerId, 86_400_000).catch(() => undefined);
+        }, 12 * 60 * 60 * 1_000);
+        renewal.unref();
+        return async () => {
+          clearInterval(renewal);
+          await locks.release(lease.leaseId, ownerId);
+        };
+      }
+    }
+  });
   const transactions = options.transactions ?? createTransactionService({
     database: options.database,
     locks,
@@ -339,6 +368,7 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
   registerAuthorizationTools(registry, { grants, emergencyStop });
   registerArtifactTools(registry, artifacts);
   registerArchiveTools(registry, options.archives ?? createArchiveService());
+  registerBrowserTools(registry, browser);
   registerCredentialTools(registry, credentials);
   registerDocumentTools(registry, documents);
   registerFilesystemTools(registry, filesystem);
@@ -509,6 +539,7 @@ export async function createHttpServer(options: CreateHttpServerOptions): Promis
       await Promise.allSettled([...sessions.values()].map(({ transport }) => transport.close()));
       sessions.clear();
       await documents.close();
+      await browser.dispose();
       await new Promise<void>((resolve, reject) => {
         listener.close((error) => (error ? reject(error) : resolve()));
       });
