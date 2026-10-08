@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Fixed the service installer, service status script, and Full Access enrollment script default database paths when the `ProgramData` environment variable is empty; added Windows regression tests and clarified copy/paste owner approval, new-machine prerequisites, and independent ChatGPT safety restrictions in the Thai first-run and troubleshooting guides.
+- Added a one-command `เปิดใช้งานระบบ.ps1` recovery/start flow and simplified Thai first-install versus later-start instructions for non-developer users.
+- Fixed tunnel-client installation when a previous interrupted run left an empty `VERSION.txt`.
+
 - Added automatic installation and SHA-256 verification of the latest official OpenAI `tunnel-client`, with `tools\tunnel-client` as the project-wide default location.
 - Fixed Windows PowerShell 5.1 default project-path resolution for service, tunnel-client, and reboot acceptance scripts.
 - Added a Thai first-run and ChatGPT Secure MCP Tunnel guide, including the correct Tunnel connection flow and troubleshooting for the raw MCP endpoint.

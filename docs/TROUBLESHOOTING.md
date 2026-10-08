@@ -8,6 +8,14 @@ Run `node --version` (must be 24.15.x or newer 24.x), `npm ci`, `npm run build`,
 
 Confirm the principal/client is the one previously trusted, the server device/data root did not change, Emergency Stop is clear, and the grant was not revoked, disconnected, unlinked, or invalidated by a security reset. A copied database on another device intentionally does not reuse trust. Re-authorize through the owner page rather than editing SQLite.
 
+## Full Access approval script cannot find operational.db
+
+Older `scripts/operations/grant-full-access.ps1` revisions derived the default `DataRoot` from `$env:ProgramData`. Some remote PowerShell environments have that variable unset, causing the script to resolve the wrong data directory even though the live database is under `C:\ProgramData\Remote-MCP-Server`. The updated installer, status script, and Full Access approval script derive the location from Windows `CommonApplicationData`; the Thai guide also explicitly passes `-DataRoot` for owner approval. Run only against the actual server data root, and never move, delete, or manually edit `operational.db` to repair this path mismatch. If a Notepad window still displays the older guide, reopen the file from disk. An integration regression test checks behavior with empty `ProgramData`.
+
+## ChatGPT says a request_full_access call was blocked
+
+Do not assume an MCP `requestId` was returned but hidden: a rejected call in that conversation may never have run. A successful call in a *different* ChatGPT conversation is distinct and may use another principal/client. Compare the full tool-call status and actual output, app selection, workspace restrictions and permission settings. ChatGPT platform safety controls can still deny certain actions even if the plugin has an app-specific “Allow all actions” permission and the *server* already has a persistent Full Access grant. Do not bypass these controls or fabricate a `requestId`. Confirm the active identity using `authorization_status`; only enroll a client when an authentic pending request exists.
+
 ## Browser, GUI, document, media, Git, or broker unavailable
 
 Run the health/self-test tool. Browser needs supported Edge/Chrome; GUI needs an interactive unlocked Windows desktop; OCR/DOCX/XLSX uses the pinned Python helper environment; media needs FFmpeg/ffprobe; Git needs `git.exe`; the privileged broker needs .NET and one elevated install. Optional absence is reported explicitly. Secure desktop, CAPTCHA, and MFA require the user.

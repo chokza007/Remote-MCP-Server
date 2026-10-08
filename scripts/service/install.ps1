@@ -2,7 +2,7 @@
 param(
     [string]$TaskName = 'RemoteMcpServer',
     [string]$ProjectRoot,
-    [string]$DataRoot = "$env:ProgramData\Remote-MCP-Server",
+    [string]$DataRoot = (Join-Path ([Environment]::GetFolderPath('CommonApplicationData')) 'Remote-MCP-Server'),
     [string]$NodePath = (Get-Command node.exe -ErrorAction Stop).Source,
     [ValidatePattern('^https://')]
     [string]$PublicOrigin,
@@ -26,11 +26,16 @@ if ([string]::IsNullOrWhiteSpace($ProjectRoot)) {
 }
 $project = [System.IO.Path]::GetFullPath($ProjectRoot)
 $data = [System.IO.Path]::GetFullPath($DataRoot)
-if ($data.TrimEnd('\') -in @(
+$systemDataRoot = [System.IO.Path]::GetFullPath([Environment]::GetFolderPath('CommonApplicationData')).TrimEnd('\')
+$userProfileRoot = [Environment]::GetFolderPath('UserProfile')
+$protectedRoots = @(
     [System.IO.Path]::GetPathRoot($data).TrimEnd('\'),
-    [System.IO.Path]::GetFullPath($env:ProgramData).TrimEnd('\'),
-    [System.IO.Path]::GetFullPath($env:USERPROFILE).TrimEnd('\')
-)) { throw "DataRoot is too broad: $data" }
+    $systemDataRoot
+)
+if (-not [string]::IsNullOrWhiteSpace($userProfileRoot)) {
+    $protectedRoots += [System.IO.Path]::GetFullPath($userProfileRoot).TrimEnd('\')
+}
+if ($data.TrimEnd('\') -in $protectedRoots) { throw "DataRoot is too broad: $data" }
 if (-not (Test-Path -LiteralPath (Join-Path $project 'package.json') -PathType Leaf)) {
     throw "ProjectRoot is not a Remote MCP checkout: $project"
 }

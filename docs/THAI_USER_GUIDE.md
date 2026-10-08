@@ -18,6 +18,7 @@ Remote-MCP-Server เป็นชั้นเครื่องมือกล�
 
 ## ดูแลระบบ
 
+- เปิดหรือกู้ระบบที่ติดตั้งแล้ว: `Set-Location E:\Remote-MCP-Server` แล้ว `.\เปิดใช้งานระบบ.ps1`
 - ตรวจสถานะ: `.\scripts\service\status.ps1`
 - ตรวจระบบก่อนปล่อยงาน: `.\scripts\release\verify.ps1`
 - สำรอง: `.\scripts\operations\backup.ps1 -DataRoot "$env:ProgramData\Remote-MCP-Server" -DestinationRoot "D:\Remote-MCP-Backups"`

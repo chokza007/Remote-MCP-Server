@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [string]$TaskName = 'RemoteMcpServer',
-    [string]$DataRoot = "$env:ProgramData\Remote-MCP-Server"
+    [string]$DataRoot = (Join-Path ([Environment]::GetFolderPath('CommonApplicationData')) 'Remote-MCP-Server')
 )
 
 $task = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue

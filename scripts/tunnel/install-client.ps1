@@ -57,7 +57,8 @@ if ($null -eq $asset -or $null -eq $checksumAsset) {
 New-Item -ItemType Directory -Path $destination -Force | Out-Null
 $installedVersionPath = Join-Path $destination 'VERSION.txt'
 $installedVersion = if (Test-Path -LiteralPath $installedVersionPath -PathType Leaf) {
-    (Get-Content -LiteralPath $installedVersionPath -Raw).Trim()
+    $installedVersionText = Get-Content -LiteralPath $installedVersionPath -Raw
+    if ($null -eq $installedVersionText) { '' } else { $installedVersionText.Trim() }
 } else {
     ''
 }

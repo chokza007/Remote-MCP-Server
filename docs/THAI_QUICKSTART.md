@@ -4,21 +4,21 @@
 
 ระบบนี้ทำให้ ChatGPT/MCP client ที่ยืนยันตัวตนแล้วเข้ามาทำงานบนเครื่องได้แบบต่อเนื่อง โดยอนุญาต Full Access ครั้งเดียวและใช้สิทธิ์เดิมจนกว่าคุณจะ revoke ไม่ต้องกดอนุมัติซ้ำทุกคำสั่ง
 
-ต้องมี Windows 10/11, Git, Node.js 24.15 ขึ้นไปแต่ต่ำกว่า 25 และ npm จากนั้นเปิด PowerShell:
+ถ้าเครื่องนี้ติดตั้งระบบแล้ว ระบบจะเปิดอัตโนมัติหลังเข้า Windows หากต้องเปิดเองให้ใช้เพียง:
+
+```powershell
+Set-Location E:\Remote-MCP-Server
+.\เปิดใช้งานระบบ.ps1
+```
+
+ไม่ต้องรัน `git clone` หรือ `npm` ซ้ำเพื่อเปิดระบบ
+
+สำหรับเครื่องใหม่ ต้องมี Windows 10/11, Git, Node.js 24.15 ขึ้นไปแต่ต่ำกว่า 25 และ npm จากนั้นเปิด PowerShell แบบ Run as administrator:
 
 ```powershell
 git clone https://github.com/chokza007/Remote-MCP-Server.git E:\Remote-MCP-Server
 Set-Location E:\Remote-MCP-Server
-npm ci
-npm run build
-npm test
-```
-
-เปิด PowerShell แบบ Run as administrator หนึ่งครั้งเพื่อติดตั้งให้เริ่มอัตโนมัติและทำงานยาวโดยไม่จำกัดเวลา:
-
-```powershell
-Set-Location E:\Remote-MCP-Server
-.\scripts\service\install.ps1
+.\scripts\service\install.ps1 -Confirm:$false
 ```
 
 คำสั่งติดตั้งจะสร้าง `E:\Remote-MCP-Server\tools\tunnel-client` ดาวน์โหลดรุ่นล่าสุดจาก OpenAI ตรวจ SHA-256 และเก็บทั้งโปรแกรมกับไฟล์ ZIP ไว้ให้อัตโนมัติ

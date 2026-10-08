@@ -3,7 +3,7 @@ param(
     [Parameter(Mandatory = $true)]
     [ValidatePattern('^[0-9a-fA-F-]{36}$')]
     [string]$RequestId,
-    [string]$DataRoot = "$env:ProgramData\Remote-MCP-Server",
+    [string]$DataRoot = (Join-Path ([Environment]::GetFolderPath('CommonApplicationData')) 'Remote-MCP-Server'),
     [string]$NodePath = (Get-Command node.exe -ErrorAction Stop).Source,
     [switch]$Force
 )

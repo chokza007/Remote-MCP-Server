@@ -12,24 +12,22 @@ This is powerful software. Full Access removes approval friction; it does not by
 
 Requirements: Windows 10/11, PowerShell 5.1+, Git, Node.js `>=24.15 <25`, and npm. Python, FFmpeg, Edge/Chrome, and .NET 8 are optional capabilities detected by health checks.
 
-Open PowerShell:
+For a new machine, open **PowerShell as Administrator** and run these commands in this exact order:
 
 ```powershell
 git clone https://github.com/chokza007/Remote-MCP-Server.git E:\Remote-MCP-Server
 Set-Location E:\Remote-MCP-Server
-npm ci
-npm run build
-npm test
-```
-
-For a persistent startup task, open **PowerShell as Administrator** once:
-
-```powershell
-Set-Location E:\Remote-MCP-Server
-.\scripts\service\install.ps1
+.\scripts\service\install.ps1 -Confirm:$false
 ```
 
 The installer also downloads the latest official OpenAI `tunnel-client`, verifies its SHA-256 checksum, and stores the executable plus original ZIP under `E:\Remote-MCP-Server\tools\tunnel-client` by default. Use `-SkipTunnelClient` only for an intentionally offline or server-only installation.
+
+On a computer where the service is already installed, do not clone or reinstall dependencies just to start it. It starts automatically at Windows sign-in. To start or recover it manually, run:
+
+```powershell
+Set-Location E:\Remote-MCP-Server
+.\เปิดใช้งานระบบ.ps1
+```
 
 The local MCP endpoint is `http://127.0.0.1:7331/mcp`. The service installer writes the owner token and OAuth signing key under `%ProgramData%\Remote-MCP-Server` with restricted ACLs; do not paste those secrets into chat or commit them. ChatGPT on the web must use OpenAI Secure MCP Tunnel as described in the Thai first-run guide; do not enter the loopback URL in ChatGPT's Server URL mode. A public deployment instead requires a trusted HTTPS reverse proxy and `-PublicOrigin https://your-host.example`.
 
@@ -50,10 +48,7 @@ The exact 177-tool catalog and schemas are generated in [docs/TOOL_INVENTORY.md]
 ```powershell
 Set-Location E:\Remote-MCP-Server
 git pull --ff-only
-npm ci
-npm run build
-npm test
-Restart-ScheduledTask -TaskName RemoteMcpServer
+.\scripts\service\install.ps1 -Confirm:$false
 ```
 
 Back up operational state before a major update:

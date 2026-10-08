@@ -11,6 +11,10 @@ The release verifier runs inventory regeneration, TypeScript typecheck, producti
 
 Final release verification: **68 test files passed; 224 tests passed and 1 explicitly optional-environment test skipped (225 total)**. Typecheck, production build, four acceptance files (5 scenarios), runtime inventory generation, and the required core capability self-test all passed. The self-test finished as a durable verified job. Dark-theme verification covers both browser pages and the visible Windows GUI fixture. This report must not claim a machine capability that health marked unavailable.
 
+## Unreleased Windows installation-hardening verification (2026-10-08)
+
+After fixing first-install, service-status, and persistent Full Access approval script path resolution when PowerShell's `ProgramData` environment variable is empty, `scripts/release/verify.ps1` returned `PASS`: 72 test files passed, 232 tests passed, and 1 optional environment-dependent test skipped (233 total). The verifier also passed inventory generation (177 tools), typecheck, build, five acceptance scenarios, and core capability self-test. Targeted Windows regression cases reproduced the broken path first, then passed after the fix. The deployed server was observed `Running` with HTTP 200 after tests. This is **not** evidence of a fresh Windows installation, a physical reboot, live ChatGPT Workspace UI provisioning, or automatic Tunnel startup on sign-in; those remain separate manual acceptance checks.
+
 ## System-dependent evidence
 
 The two-stage reboot scripts use a signed state file and one-shot startup continuation. Their non-disruptive prepare/continue path reconnects to the loopback MCP endpoint as the persisted principal/client, verifies `authorization_status=granted`, and performs a harmless filesystem mutation without a second approval. A physical reboot is intentionally opt-in with `REMOTE_MCP_AUTHORIZED_REBOOT_TEST=1` and `-Reboot`; it was not forced on the user's active desktop merely to make a report green.
