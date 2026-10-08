@@ -13,8 +13,8 @@ param(
     [string]$ServiceName = 'RemoteMcpPrivilegedBroker',
     [ValidatePattern('^[A-Za-z0-9_.-]+$')]
     [string]$PipeName = 'remote-mcp-privileged-v1',
-    [string]$InstallRoot = "$env:ProgramFiles\Remote-MCP-Server\Broker",
-    [string]$DataRoot = "$env:ProgramData\Remote-MCP-Server\Broker"
+    [string]$InstallRoot = (Join-Path ([Environment]::GetFolderPath('ProgramFiles')) 'Remote-MCP-Server\Broker'),
+    [string]$DataRoot = (Join-Path ([Environment]::GetFolderPath('CommonApplicationData')) 'Remote-MCP-Server\Broker')
 )
 
 $ErrorActionPreference = 'Stop'
@@ -31,9 +31,9 @@ function Assert-SafeManagedDirectory([string]$Path, [string]$Purpose) {
     $full = [System.IO.Path]::GetFullPath($Path).TrimEnd('\')
     $forbidden = @(
         [System.IO.Path]::GetPathRoot($full).TrimEnd('\'),
-        [System.IO.Path]::GetFullPath($env:ProgramFiles).TrimEnd('\'),
-        [System.IO.Path]::GetFullPath($env:ProgramData).TrimEnd('\'),
-        [System.IO.Path]::GetFullPath($env:USERPROFILE).TrimEnd('\')
+        [System.IO.Path]::GetFullPath([Environment]::GetFolderPath('ProgramFiles')).TrimEnd('\'),
+        [System.IO.Path]::GetFullPath([Environment]::GetFolderPath('CommonApplicationData')).TrimEnd('\'),
+        [System.IO.Path]::GetFullPath([Environment]::GetFolderPath('UserProfile')).TrimEnd('\')
     )
     if ($forbidden -contains $full) { throw "$Purpose path is too broad: $full" }
 }

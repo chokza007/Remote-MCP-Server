@@ -2,9 +2,9 @@
 param(
     [ValidatePattern('^[A-Za-z0-9_.-]+$')]
     [string]$ServiceName = 'RemoteMcpPrivilegedBroker',
-    [string]$InstallRoot = "$env:ProgramFiles\Remote-MCP-Server\Broker",
+    [string]$InstallRoot = (Join-Path ([Environment]::GetFolderPath('ProgramFiles')) 'Remote-MCP-Server\Broker'),
     [switch]$RemoveOperationalData,
-    [string]$DataRoot = "$env:ProgramData\Remote-MCP-Server\Broker"
+    [string]$DataRoot = (Join-Path ([Environment]::GetFolderPath('CommonApplicationData')) 'Remote-MCP-Server\Broker')
 )
 
 $ErrorActionPreference = 'Stop'
@@ -18,9 +18,9 @@ $resolvedInstall = [System.IO.Path]::GetFullPath($InstallRoot)
 $resolvedData = [System.IO.Path]::GetFullPath($DataRoot)
 $forbidden = @(
     [System.IO.Path]::GetPathRoot($resolvedInstall).TrimEnd('\'),
-    [System.IO.Path]::GetFullPath($env:ProgramFiles).TrimEnd('\'),
-    [System.IO.Path]::GetFullPath($env:ProgramData).TrimEnd('\'),
-    [System.IO.Path]::GetFullPath($env:USERPROFILE).TrimEnd('\')
+    [System.IO.Path]::GetFullPath([Environment]::GetFolderPath('ProgramFiles')).TrimEnd('\'),
+    [System.IO.Path]::GetFullPath([Environment]::GetFolderPath('CommonApplicationData')).TrimEnd('\'),
+    [System.IO.Path]::GetFullPath([Environment]::GetFolderPath('UserProfile')).TrimEnd('\')
 )
 if ($forbidden -contains $resolvedInstall.TrimEnd('\') -or $forbidden -contains $resolvedData.TrimEnd('\')) {
     throw 'Refusing to remove a broad system or profile directory.'

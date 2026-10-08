@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Hardened Privileged Broker installer, status, and uninstall Windows known-folder paths against unset `ProgramData`/`ProgramFiles` variables; added path regression tests. Clarified that a production signed authorization snapshot, key provisioning, secure MCP dispatch, and explicit elevated first installation remain required, and documented how Emergency Stop must be respected.
+
 - Clarified account migration: a new ChatGPT account can reuse a permitted existing Tunnel without rotating the Platform runtime key; if its Platform organization cannot access the existing Tunnel, create a new Tunnel/key and update only the local tunnel-client and new ChatGPT plugin, not the Windows MCP installation.
 
 - Documented new-chat versus new-ChatGPT-account reconnect procedures in the Thai setup/quickstart guides and explicitly identified the current Local Tunnel static-header identity limitation, which can share an existing Full Access grant across accounts allowed into the same Tunnel; account-specific isolation remains unverified and needs separate implementation/tests.

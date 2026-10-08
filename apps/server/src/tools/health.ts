@@ -99,7 +99,7 @@ export function createDefaultCapabilityRegistry(dependencies: DefaultCapabilityD
   });
   registry.register({
     id: "privileged.broker", version: "1.0.0", required: false, description: "Persistent-authorized Windows privileged broker",
-    remediation: "Run scripts/broker/install.ps1 from an elevated PowerShell session.",
+    remediation: "Before Administrator installation, wire production signing and a signed authorization snapshot, verify broker dispatch, then install from an elevated owner session. See docs/security/BROKER_ROLLOUT.md.",
     probe: async () => {
       try {
         const service = await dependencies.services.inspect("RemoteMcpPrivilegedBroker");

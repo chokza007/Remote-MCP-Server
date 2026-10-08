@@ -131,8 +131,9 @@ describe("capability diagnostics", () => {
       expect(jobs.get(runId).state).toBe("succeeded");
       const reports = await registry.probeAll();
       expect(reports.every((entry) => ["ready", "degraded", "unavailable", "failed"].includes(entry.status))).toBe(true);
-      expect(reports.find((entry) => entry.id === "privileged.broker")?.status)
-        .toMatch(/^(?:ready|degraded|unavailable)$/u);
+      const broker = reports.find((entry) => entry.id === "privileged.broker");
+      expect(broker?.status).toMatch(/^(?:ready|degraded|unavailable)$/u);
+      expect(broker?.remediation).toContain("signed authorization snapshot");
     } finally {
       await browser.dispose();
       database.close();

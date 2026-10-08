@@ -2,7 +2,7 @@
 param(
     [ValidatePattern('^[A-Za-z0-9_.-]+$')]
     [string]$ServiceName = 'RemoteMcpPrivilegedBroker',
-    [string]$DataRoot = "$env:ProgramData\Remote-MCP-Server\Broker"
+    [string]$DataRoot = (Join-Path ([Environment]::GetFolderPath('CommonApplicationData')) 'Remote-MCP-Server\Broker')
 )
 
 $service = Get-CimInstance Win32_Service -Filter "Name='$($ServiceName.Replace("'", "''"))'" -ErrorAction SilentlyContinue
