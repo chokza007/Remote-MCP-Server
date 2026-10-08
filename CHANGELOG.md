@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Added an offline owner-only PowerShell command to clear Emergency Stop and health-check restart the scheduled service; hardened the paired stop/reset scripts against missing ProgramData environment values. Added isolated tests for recovery, idempotency and grant/epoch preservation.
+- Added a tested pre-install broker signing-key and signed-authorization-snapshot preparation utility, while keeping production administrator dispatch disabled until signed snapshot synchronization and broker transport integration pass end-to-end tests.
+
 - Hardened Privileged Broker installer, status, and uninstall Windows known-folder paths against unset `ProgramData`/`ProgramFiles` variables; added path regression tests. Clarified that a production signed authorization snapshot, key provisioning, secure MCP dispatch, and explicit elevated first installation remain required, and documented how Emergency Stop must be respected.
 
 - Clarified account migration: a new ChatGPT account can reuse a permitted existing Tunnel without rotating the Platform runtime key; if its Platform organization cannot access the existing Tunnel, create a new Tunnel/key and update only the local tunnel-client and new ChatGPT plugin, not the Windows MCP installation.

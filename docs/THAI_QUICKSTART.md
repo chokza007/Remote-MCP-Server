@@ -27,10 +27,20 @@ Set-Location E:\Remote-MCP-Server
 
 **การเปลี่ยนแชทหรือบัญชี:** เปิดแชทใหม่ในบัญชีเดิมโดยเลือกปลั๊กอินที่มีอยู่และตรวจ `authorization_status` ได้เลย ไม่ต้องติดตั้งใหม่ หากเปลี่ยนบัญชี ChatGPT บนเครื่องเดิม ให้ตรวจสิทธิ์ Workspace และการติดตั้งปลั๊กอินของบัญชีใหม่ก่อน **ข้อควรระวัง:** การเชื่อมผ่าน Tunnel เดียวกันในโหมด Local ใช้ `principal/client` แบบคงที่จาก `tunnel-client` จึงอาจแชร์ grant Full Access เดิมระหว่างบัญชีที่เข้าถึง Tunnel ได้ ไม่ใช่การแยกสิทธิ์รายบัญชีที่ตรวจสอบได้ อ่านข้อ 10.1–10.2 ในคู่มือฉบับเต็มก่อนอนุญาตให้บัญชีใหม่เชื่อม
 
-หากต้องหยุดฉุกเฉิน ให้เปิด PowerShell แบบ Administrator:
+หากต้องหยุดฉุกเฉิน ให้เปิด PowerShell แบบ **Run as administrator**:
 
 ```powershell
+Set-Location E:\Remote-MCP-Server
 .\scripts\operations\emergency-stop.ps1 -Force
 ```
+
+**เมื่อเจ้าของเครื่องต้องการยกเลิก Emergency Stop และกลับมาเปิดเซิร์ฟเวอร์** ให้ใช้คำสั่งคู่กัน (PowerShell แบบ Administrator เช่นเดิม):
+
+```powershell
+Set-Location E:\Remote-MCP-Server
+.\scripts\operations\clear-emergency-stop.ps1 -Force
+```
+
+คำสั่งกู้คืนใช้ฐานข้อมูลเดิม ไม่รีเซ็ต grant/API Key/Tunnel และตรวจว่าบริการตอบ HTTP 200 ก่อนแสดงผลสำเร็จ; สามารถเรียก `clear_emergency_stop` จาก ChatGPT เมื่อ MCP ยังออนไลน์และเจ้าของเครื่องอนุญาตได้ แต่ถ้า Scheduled Task หยุดอยู่ให้ใช้ PowerShell บนเครื่องนี้ตามบล็อกด้านบน
 
 Full Access ไม่สามารถข้าม CAPTCHA, MFA, Secure Desktop/UAC ตอนติดตั้งครั้งแรก หรือสิทธิ์ที่ Windows account ไม่มีได้ และการทำงานสำคัญยังมี audit log เสมอ อ่านรายละเอียดต่อที่ `THAI_USER_GUIDE.md` และ `TROUBLESHOOTING.md`

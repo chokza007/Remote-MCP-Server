@@ -1,6 +1,6 @@
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
 param(
-    [string]$DataRoot = "$env:ProgramData\Remote-MCP-Server",
+    [string]$DataRoot = (Join-Path ([Environment]::GetFolderPath('CommonApplicationData')) 'Remote-MCP-Server'),
     [string]$TaskName = 'RemoteMcpServer',
     [string]$NodePath = (Get-Command node.exe -ErrorAction Stop).Source,
     [switch]$Force

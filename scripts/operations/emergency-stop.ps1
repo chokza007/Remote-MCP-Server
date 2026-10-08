@@ -1,6 +1,6 @@
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'High')]
 param(
-    [string]$DataRoot = "$env:ProgramData\Remote-MCP-Server",
+    [string]$DataRoot = (Join-Path ([Environment]::GetFolderPath('CommonApplicationData')) 'Remote-MCP-Server'),
     [string]$TaskName = 'RemoteMcpServer',
     [string]$Reason = 'owner_emergency_stop',
     [string]$NodePath = (Get-Command node.exe -ErrorAction Stop).Source,
@@ -12,7 +12,8 @@ $data = [System.IO.Path]::GetFullPath($DataRoot).TrimEnd('\')
 if ($data -eq [System.IO.Path]::GetPathRoot($data).TrimEnd('\')) { throw "DataRoot is too broad: $data" }
 $database = Join-Path $data 'operational.db'
 if (-not (Test-Path -LiteralPath $database -PathType Leaf)) { throw "Operational database is missing: $database" }
-if (-not $Force -and -not $PSCmdlet.ShouldProcess($TaskName, 'Activate emergency stop and stop the service task')) { return }
+if ($Force) { $ConfirmPreference = 'None' }
+if (-not $PSCmdlet.ShouldProcess($TaskName, 'Activate emergency stop and stop the service task')) { return }
 
 $timestamp = (Get-Date).ToUniversalTime().ToString('o')
 $actor = "owner:$([System.Security.Principal.WindowsIdentity]::GetCurrent().Name)"

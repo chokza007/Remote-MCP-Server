@@ -8,6 +8,17 @@ Run `node --version` (must be 24.15.x or newer 24.x), `npm ci`, `npm run build`,
 
 Confirm the principal/client is the one previously trusted, the server device/data root did not change, Emergency Stop is clear, and the grant was not revoked, disconnected, unlinked, or invalidated by a security reset. A copied database on another device intentionally does not reuse trust. Re-authorize through the owner page rather than editing SQLite.
 
+## Owner Emergency Stop remains active after the MCP service has stopped
+
+Use an elevated Administrator PowerShell window on the owner Windows computer:
+
+```powershell
+Set-Location E:\Remote-MCP-Server
+.\scripts\operations\clear-emergency-stop.ps1 -Force
+```
+
+The command clears the owner stop in the *existing* database, then starts the Scheduled Task and verifies the local HTTP endpoint. It does not rotate the security epoch, remove the Full Access grant or recreate the API key/Tunnel. If the server is still alive, the owner may alternatively use the MCP `clear_emergency_stop` tool. Never edit the operational database directly or treat an unverified HTTP process as proof of authorization recovery. Pair with `scripts/operations/emergency-stop.ps1 -Force` to stop.
+
 ## Full Access approval script cannot find operational.db
 
 Older `scripts/operations/grant-full-access.ps1` revisions derived the default `DataRoot` from `$env:ProgramData`. Some remote PowerShell environments have that variable unset, causing the script to resolve the wrong data directory even though the live database is under `C:\ProgramData\Remote-MCP-Server`. The updated installer, status script, and Full Access approval script derive the location from Windows `CommonApplicationData`; the Thai guide also explicitly passes `-DataRoot` for owner approval. Run only against the actual server data root, and never move, delete, or manually edit `operational.db` to repair this path mismatch. If a Notepad window still displays the older guide, reopen the file from disk. An integration regression test checks behavior with empty `ProgramData`.
