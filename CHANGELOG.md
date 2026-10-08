@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Documented new-chat versus new-ChatGPT-account reconnect procedures in the Thai setup/quickstart guides and explicitly identified the current Local Tunnel static-header identity limitation, which can share an existing Full Access grant across accounts allowed into the same Tunnel; account-specific isolation remains unverified and needs separate implementation/tests.
+
 - Fixed the service installer, service status script, and Full Access enrollment script default database paths when the `ProgramData` environment variable is empty; added Windows regression tests and clarified copy/paste owner approval, new-machine prerequisites, and independent ChatGPT safety restrictions in the Thai first-run and troubleshooting guides.
 - Added a one-command `เปิดใช้งานระบบ.ps1` recovery/start flow and simplified Thai first-install versus later-start instructions for non-developer users.
 - Fixed tunnel-client installation when a previous interrupted run left an empty `VERSION.txt`.
